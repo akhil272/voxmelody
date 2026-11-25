@@ -10,6 +10,7 @@ use super::error::ModelError;
 use super::location::LocationStore;
 use super::manager::{LocationStatus, ModelManager, PackStatus};
 use super::manifest::{self, Pack};
+use crate::voice::engine::VoiceEngine;
 
 const STATUS_EVENT: &str = "models://status";
 const LOCATION_EVENT: &str = "models://location";
@@ -23,7 +24,7 @@ pub struct SystemInfo {
 }
 
 /// Debug builds accept an override so tests never touch real user data.
-fn data_dir(app: &AppHandle) -> tauri::Result<PathBuf> {
+pub fn data_dir(app: &AppHandle) -> tauri::Result<PathBuf> {
   #[cfg(debug_assertions)]
   if let Some(dir) = std::env::var_os("VOXMELODY_DATA_DIR") {
     return Ok(dir.into());
@@ -76,7 +77,12 @@ pub async fn pause_pack(manager: State<'_, ModelManager>, id: String) -> Result<
 }
 
 #[tauri::command]
-pub async fn remove_pack(manager: State<'_, ModelManager>, id: String) -> Result<(), ModelError> {
+pub async fn remove_pack(
+  manager: State<'_, ModelManager>,
+  voice: State<'_, VoiceEngine>,
+  id: String,
+) -> Result<(), ModelError> {
+  let _suspended = voice.suspend().await;
   manager.remove(find(&id)?).await
 }
 
@@ -87,18 +93,27 @@ pub async fn models_location(manager: State<'_, ModelManager>) -> Result<Locatio
 
 /// Opens the system folder picker; the path never comes from the page.
 #[tauri::command]
-pub async fn change_models_location(app: AppHandle, manager: State<'_, ModelManager>) -> Result<(), ModelError> {
+pub async fn change_models_location(
+  app: AppHandle,
+  manager: State<'_, ModelManager>,
+  voice: State<'_, VoiceEngine>,
+) -> Result<(), ModelError> {
   let (sender, receiver) = tokio::sync::oneshot::channel();
   app.dialog().file().pick_folder(move |folder| {
     let _ = sender.send(folder);
   });
   let Ok(Some(folder)) = receiver.await else { return Ok(()) };
   let path = folder.into_path().map_err(|_| ModelError::Storage)?;
+  let _suspended = voice.suspend().await;
   manager.change_location(&path).await
 }
 
 #[tauri::command]
-pub async fn restore_models_location(manager: State<'_, ModelManager>) -> Result<(), ModelError> {
+pub async fn restore_models_location(
+  manager: State<'_, ModelManager>,
+  voice: State<'_, VoiceEngine>,
+) -> Result<(), ModelError> {
+  let _suspended = voice.suspend().await;
   manager.restore_location().await
 }
 
