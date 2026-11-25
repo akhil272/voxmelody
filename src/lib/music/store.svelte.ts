@@ -1,8 +1,8 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { AUTO_BPM, AUTO_KEY, DEFAULT_BPM, DEFAULT_LENGTH, MAX_PROMPT_LENGTH } from "#lib/constants.js";
-import { exportTake, loadClip } from "#lib/takes/api.js";
+import { exportRecording, loadRecording } from "#lib/library/api.js";
 import type { Clip } from "#lib/takes/types.js";
-import { countCharacters, toFileName, toMusicError } from "#lib/utils.js";
+import { countCharacters, toMusicError } from "#lib/utils.js";
 import * as api from "./api.js";
 import type { MusicError, TempoMode } from "./types.js";
 
@@ -45,7 +45,7 @@ class MusicStore {
         bpm: this.tempo === "custom" ? this.bpm : AUTO_BPM,
         key: this.key === AUTO_KEY ? "" : this.key,
       });
-      const clip = await loadClip(take, prompt);
+      const clip = { ...take, title: prompt, url: await loadRecording(take.id) };
       if (this.clip) URL.revokeObjectURL(this.clip.url);
       this.clip = clip;
       this.exported = false;
@@ -61,13 +61,20 @@ class MusicStore {
     await api.cancelMusic();
   }
 
+  /** Drops a clip that was deleted from the library. */
+  forget(id: number) {
+    if (this.clip?.id !== id) return;
+    URL.revokeObjectURL(this.clip.url);
+    this.clip = null;
+  }
+
   async export() {
     if (!this.clip) return;
     this.error = null;
     try {
-      this.exported = await exportTake(this.clip.id, `${toFileName(this.clip.title)}.wav`);
-    } catch (error) {
-      this.error = toMusicError(error);
+      this.exported = await exportRecording(this.clip.id, this.clip.title);
+    } catch {
+      this.error = "output";
     }
   }
 }

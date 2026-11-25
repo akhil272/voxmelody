@@ -3,9 +3,11 @@ export { closeWindow, minimizeWindow, toggleMaximizeWindow } from "./utils/windo
 export { formatBytes, formatMemory, toPercent } from "./utils/format.js";
 export { hasEnoughMemory } from "./utils/memory.js";
 export { toModelError } from "./utils/model-error.js";
+export { toAudioUrl } from "./utils/audio.js";
+export { toLibraryError } from "./utils/library-error.js";
 export { toMusicError } from "./utils/music-error.js";
 export { countCharacters, toFileName } from "./utils/text.js";
-export { formatTime } from "./utils/time.js";
+export { formatDate, formatTime } from "./utils/time.js";
 export { toVoiceError } from "./utils/voice-error.js";
 export { isMacPlatform } from "./utils/platform.js";
 export { isActiveRoute } from "./utils/routes.js";

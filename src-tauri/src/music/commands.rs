@@ -3,8 +3,10 @@ use tauri::{AppHandle, Emitter, Manager, State};
 
 use super::engine::{MusicEngine, Request};
 use super::error::MusicError;
+use crate::library::commands as library;
+use crate::library::store::Kind;
 use crate::models::manager::ModelManager;
-use crate::takes::{Take, TakeKind, Takes};
+use crate::takes::{Take, Takes};
 
 const PROGRESS_EVENT: &str = "music://progress";
 const MAX_CHARACTERS: usize = 500;
@@ -65,8 +67,11 @@ pub async fn compose(
   };
   match engine.compose(locate, &request, report).await {
     Ok(track) => {
-      takes.keep(TakeKind::Music, id);
-      Ok(Take { id, duration_ms: track.duration_ms, peaks: track.peaks })
+      let kept = library::keep(&app, Kind::Music, request.prompt, output.clone(), track.duration_ms, track.peaks).await;
+      kept.map_err(|_| {
+        takes.discard(id);
+        MusicError::Output
+      })
     }
     Err(error) => {
       takes.discard(id);

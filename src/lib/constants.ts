@@ -1,3 +1,4 @@
+export { MAX_TITLE_LENGTH } from "./constants/library.js";
 export { COPY } from "./constants/copy.js";
 export {
   AUTO_BPM,
