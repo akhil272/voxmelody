@@ -73,3 +73,9 @@ Lyrics and vocals are outside Phase 4. Length is 10 to 240 seconds; tempo and ke
 
 ## D024: Shared takes (2026-11-25)
 Extends D019. Voice and music share one temporary take store and one read and export path. Removing a model suspends only its own engine; moving models suspends both.
+
+## D025: Library storage (2026-11-25)
+Supersedes D019 and D024 for finished recordings. Every generated voice and music track is kept automatically as a WAV in the `VoxMelody` folder of the system Music folder, or in the app data folder if that is unusable. Previews stay temporary. The index is `library.json` in the app data folder: written atomically, with one backup, under a file lock so two windows agree. No database is needed.
+
+## D026: Identifying recordings (2026-11-25)
+A recording is recognised by its size plus a hash of its start and middle. Size alone fails because tracks of equal length have equal size. Relink only accepts the same recording and also finds others moved beside it. Delete never removes a file that is not the recording. Rename changes the title only; file names stay.

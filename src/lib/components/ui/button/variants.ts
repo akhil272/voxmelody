@@ -16,6 +16,7 @@ export const buttonVariants = tv({
       default: "h-10 gap-2 px-4 text-sm",
       lg: "h-11 gap-3 px-5 text-sm",
       inline: "gap-1.5 text-xs",
+      icon: "size-9",
       round: "size-11 rounded-full",
       window: "h-full w-12 rounded-none",
     },

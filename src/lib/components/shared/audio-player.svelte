@@ -10,9 +10,10 @@
     peaks: number[];
     durationMs: number;
     tone?: "voice" | "music";
+    autoplay?: boolean;
   }
 
-  let { url, peaks, durationMs, tone = "voice" }: Props = $props();
+  let { url, peaks, durationMs, tone = "voice", autoplay = false }: Props = $props();
 
   let paused = $state(true);
   let currentTime = $state(0);
@@ -22,7 +23,7 @@
   const loudest = $derived(Math.max(...peaks, 0.01));
 </script>
 
-<audio src={url} bind:paused bind:currentTime></audio>
+<audio src={url} {autoplay} bind:paused bind:currentTime></audio>
 
 <div class="flex items-center gap-4">
   <Button
