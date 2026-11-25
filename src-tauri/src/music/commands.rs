@@ -21,14 +21,14 @@ const MODES: [&str; 2] = ["major", "minor"];
 
 #[derive(Deserialize)]
 pub struct MusicRequest {
-  model: String,
-  prompt: String,
-  seconds: u32,
+  pub model: String,
+  pub prompt: String,
+  pub seconds: u32,
   /// Zero lets the model choose.
-  bpm: u32,
+  pub bpm: u32,
   /// Empty lets the model choose.
-  key: String,
-  options: Options,
+  pub key: String,
+  pub options: Options,
 }
 
 impl MusicRequest {
@@ -82,8 +82,15 @@ pub async fn compose(
   };
   match engine.compose(locate, &request, report).await {
     Ok(track) => {
-      let kept = library::keep(&app, Kind::Music, request.prompt, output.clone(), track.duration_ms, track.peaks).await;
-      kept.map_err(|_| {
+      let finished = library::Finished {
+        kind: Kind::Music,
+        title: request.prompt,
+        source: output.clone(),
+        duration_ms: track.duration_ms,
+        peaks: track.peaks,
+        cloned: false,
+      };
+      library::keep(&app, finished).await.map_err(|_| {
         takes.discard(id);
         MusicError::Output
       })

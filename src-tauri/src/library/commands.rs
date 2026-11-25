@@ -6,9 +6,12 @@ use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, FilePath};
 
 use super::error::LibraryError;
 use super::store::{Kind, Library, NewRecording, Recording};
+use crate::audio::wav;
 use crate::takes::Take;
 
 const CHANGED_EVENT: &str = "library://changed";
+/// Stays in the file, so anyone can tell how it was made.
+const CLONED_COMMENT: &str = "AI-generated speech in a cloned voice, made with VoxMelody";
 const FOLDER_NAME: &str = "VoxMelody";
 
 /// Recordings are ordinary files in the Music folder, so they outlive the app.
@@ -35,18 +38,26 @@ async fn run<T: Send + 'static>(
   tauri::async_runtime::spawn_blocking(move || work(&library)).await.map_err(|_| LibraryError::Storage)?
 }
 
+/// A take that is ready for the library.
+pub struct Finished<'a> {
+  pub kind: Kind,
+  pub title: &'a str,
+  pub source: PathBuf,
+  pub duration_ms: u64,
+  pub peaks: Vec<f32>,
+  /// True when it contains a cloned voice.
+  pub cloned: bool,
+}
+
 /// Keeps a finished take for good.
-pub async fn keep(
-  app: &AppHandle,
-  kind: Kind,
-  title: &str,
-  source: PathBuf,
-  duration_ms: u64,
-  peaks: Vec<f32>,
-) -> Result<Take, LibraryError> {
-  let title = title.to_string();
+pub async fn keep(app: &AppHandle, finished: Finished<'_>) -> Result<Take, LibraryError> {
+  let Finished { kind, source, duration_ms, peaks, cloned, .. } = finished;
+  let title = finished.title.to_string();
   let recording = run(&app.state::<Library>(), move |library| {
-    library.add(NewRecording { kind, title: &title, source: &source, duration_ms, peaks })
+    if cloned {
+      wav::add_comment(&source, CLONED_COMMENT)?;
+    }
+    library.add(NewRecording { kind, title: &title, source: &source, duration_ms, peaks, cloned })
   })
   .await?;
   let _ = app.emit(CHANGED_EVENT, ());

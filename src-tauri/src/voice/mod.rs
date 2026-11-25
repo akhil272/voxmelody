@@ -1,4 +1,4 @@
 pub mod commands;
 pub mod engine;
-mod error;
-mod voices;
+pub mod error;
+pub mod voices;

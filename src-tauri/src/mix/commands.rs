@@ -32,6 +32,7 @@ impl MixRequest {
 
 struct Mixed {
   title: String,
+  cloned: bool,
   duration_ms: u64,
   peaks: Vec<f32>,
 }
@@ -42,7 +43,8 @@ fn create(library: &Library, request: &MixRequest, output: &Path) -> Result<Mixe
   let samples = render::render(wav::read(&voice)?, wav::read(&music)?, &request.settings).ok_or(MixError::Audio)?;
   wav::write(output, &samples, render::RATE)?;
   let frames = (samples.len() / CHANNELS) as u64;
-  Ok(Mixed { title, duration_ms: frames * 1000 / u64::from(render::RATE), peaks: wav::peaks(&samples, PEAKS) })
+  let cloned = library.is_cloned(request.voice)?;
+  Ok(Mixed { title, cloned, duration_ms: frames * 1000 / u64::from(render::RATE), peaks: wav::peaks(&samples, PEAKS) })
 }
 
 #[tauri::command]
@@ -60,7 +62,15 @@ pub async fn create_mix(
   let mixed = tauri::async_runtime::spawn_blocking(move || create(&files, &request, &path)).await;
   let kept = match mixed.unwrap_or(Err(MixError::Output)) {
     Ok(mix) => {
-      library::keep(&app, Kind::Mix, &mix.title, output, mix.duration_ms, mix.peaks).await.map_err(MixError::from)
+      let finished = library::Finished {
+        kind: Kind::Mix,
+        title: &mix.title,
+        source: output,
+        duration_ms: mix.duration_ms,
+        peaks: mix.peaks,
+        cloned: mix.cloned,
+      };
+      library::keep(&app, finished).await.map_err(MixError::from)
     }
     Err(error) => Err(error),
   };

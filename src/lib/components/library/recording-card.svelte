@@ -4,7 +4,7 @@
   import PlayIcon from "@lucide/svelte/icons/play";
   import TrashIcon from "@lucide/svelte/icons/trash-2";
   import XIcon from "@lucide/svelte/icons/x";
-  import TitleEditor from "#lib/components/library/title-editor.svelte";
+  import TitleEditor from "#lib/components/shared/title-editor.svelte";
   import AudioPlayer from "#lib/components/shared/audio-player.svelte";
   import { AlertDialog } from "#lib/components/ui/alert-dialog/index.js";
   import { Badge } from "#lib/components/ui/badge/index.js";
@@ -56,6 +56,7 @@
       {/if}
       <p class="truncate text-sm text-muted-foreground tabular-nums">{details}</p>
     </div>
+    {#if recording.cloned}<Badge>{copy.cloned}</Badge>{/if}
     {#if !recording.available}
       <Badge tone="warning">{copy.missing}</Badge>
       <Button variant="outline" onclick={() => library.relink(id)}>{copy.relink}</Button>

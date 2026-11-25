@@ -26,6 +26,8 @@ pub struct Request {
   /// Zero chooses automatically.
   pub threads: usize,
   pub steps: i32,
+  /// A recording of the voice to speak in, for families that need one.
+  pub reference: Option<PathBuf>,
   pub output: PathBuf,
 }
 
@@ -44,6 +46,7 @@ pub enum ErrorCode {
   Model,
   NoSpeech,
   Output,
+  Reference,
   Request,
 }
 
