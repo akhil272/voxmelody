@@ -10,7 +10,8 @@ fn setup() -> Option<(MusicEngine, PathBuf, tempfile::TempDir)> {
 }
 
 fn request(output: &Path) -> Request<'_> {
-  Request { prompt: "Calm acoustic guitar", seconds: 10, bpm: 90, key: "G major", output }
+  let model = crate::models::manifest::find("music").unwrap().music.as_ref().unwrap();
+  Request { prompt: "Calm acoustic guitar", seconds: 10, bpm: 90, key: "G major", options: Options::default(), model, output }
 }
 
 #[tokio::test]
@@ -28,9 +29,9 @@ async fn missing_engine_is_an_error() {
 async fn composes_on_every_device() {
   let Some((engine, pack, dir)) = setup() else { return };
   for cpu_only in [false, true] {
-    engine.slot.lock().await.cpu_only = cpu_only;
     let output = dir.path().join("é.wav");
-    let track = engine.compose(async { Ok(pack.clone()) }, &request(&output), |_| {}).await.unwrap();
+    let options = Options { cpu_only, ..Default::default() };
+    let track = engine.compose(async { Ok(pack.clone()) }, &Request { options, ..request(&output) }, |_| {}).await.unwrap();
     assert_eq!(track.duration_ms, 10_000);
     // Exactly ten seconds of 16-bit stereo, and no leftover files.
     assert_eq!(std::fs::metadata(&output).unwrap().len(), 44 + 10 * 48_000 * 4);

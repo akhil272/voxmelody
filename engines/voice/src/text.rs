@@ -1,5 +1,3 @@
-use crate::engine::Language;
-
 /// Abbreviations whose full stop would otherwise end the sentence.
 const ENGLISH_ABBREVIATIONS: [(&str, &str); 10] = [
   ("Dr.", "Doctor"),
@@ -14,8 +12,12 @@ const ENGLISH_ABBREVIATIONS: [(&str, &str); 10] = [
   ("approx.", "approximately"),
 ];
 
+pub fn is_english(language: &str) -> bool {
+  language == "en" || language.starts_with("en-")
+}
+
 /// Cleans text so the speech library reads every word.
-pub fn prepare(text: &str, language: Language) -> String {
+pub fn prepare(text: &str, language: &str) -> String {
   let clean: String = text
     .chars()
     .map(|c| match c {
@@ -35,11 +37,11 @@ pub fn prepare(text: &str, language: Language) -> String {
     .join(" ")
 }
 
-fn prepare_line(line: &str, language: Language) -> String {
+fn prepare_line(line: &str, language: &str) -> String {
   let words: Vec<&str> = line.split_whitespace().collect();
   let mut spoken: Vec<String> = Vec::with_capacity(words.len());
   for (index, word) in words.iter().enumerate() {
-    spoken.push(if language.is_english() { expand(word, index + 1 == words.len()) } else { (*word).into() });
+    spoken.push(if is_english(language) { expand(word, index + 1 == words.len()) } else { (*word).into() });
   }
   let mut line = spoken.join(" ");
   // Keeps headings and list items from running into the next line.
@@ -61,12 +63,30 @@ fn expand(word: &str, ends_line: bool) -> String {
   word.into()
 }
 
+/// "$49.99" as "49 dollars 99", for models that misread decimal prices.
+pub fn spell_prices(text: &str) -> String {
+  text.split(' ').map(|word| spell_price(word).unwrap_or_else(|| word.into())).collect::<Vec<_>>().join(" ")
+}
+
+fn spell_price(word: &str) -> Option<String> {
+  let (prefix, amount) = word.split_once('$')?;
+  let (whole, rest) = amount.split_once('.')?;
+  let digits = |text: &str| !text.is_empty() && text.chars().all(|c| c.is_ascii_digit());
+  let (cents, suffix) = rest.split_at_checked(2)?;
+  // "$1.2345" and "$2.50M" are not prices in cents.
+  let is_price = prefix.chars().all(|c| !c.is_alphanumeric())
+    && digits(&whole.replace(',', ""))
+    && digits(cents)
+    && !suffix.starts_with(char::is_alphanumeric);
+  is_price.then(|| format!("{prefix}{whole} dollars {cents}{suffix}"))
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
 
   fn english(text: &str) -> String {
-    prepare(text, Language::EnUs)
+    prepare(text, "en-us")
   }
 
   #[test]
@@ -79,7 +99,7 @@ mod tests {
   #[test]
   fn leaves_other_words_and_languages_alone() {
     assert_eq!(english("Mr.Big Drive. $49.99"), "Mr.Big Drive. $49.99.");
-    assert_eq!(prepare("El Dr. Niño", Language::Es), "El Dr. Niño.");
+    assert_eq!(prepare("El Dr. Niño", "es"), "El Dr. Niño.");
   }
 
   #[test]
@@ -91,5 +111,13 @@ mod tests {
   #[test]
   fn separates_headings() {
     assert_eq!(english("Chapter One\n\nIt began"), "Chapter One. It began.");
+  }
+
+  #[test]
+  fn spells_prices() {
+    assert_eq!(spell_prices("Now ($49.99), was $1,200.50."), "Now (49 dollars 99), was 1,200 dollars 50.");
+    for other in ["$20 each", "$2.50M", "$1.2345", "US$4.50", "$.50", "a$b.cd", "$é.éé"] {
+      assert_eq!(spell_prices(other), other);
+    }
   }
 }

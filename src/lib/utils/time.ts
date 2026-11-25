@@ -5,6 +5,13 @@ export function formatTime(seconds: number) {
 
 const DATE_FORMAT = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
 
+const MONTH_FORMAT = new Intl.DateTimeFormat(undefined, { month: "short", year: "numeric", timeZone: "UTC" });
+
+/** From YYYY-MM-DD. */
+export function formatMonth(date: string) {
+  return MONTH_FORMAT.format(new Date(date));
+}
+
 export function formatDate(milliseconds: number) {
   return DATE_FORMAT.format(milliseconds);
 }

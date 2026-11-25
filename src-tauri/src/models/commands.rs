@@ -9,7 +9,7 @@ use tauri_plugin_dialog::DialogExt;
 use super::error::ModelError;
 use super::location::LocationStore;
 use super::manager::{LocationStatus, ModelManager, PackStatus};
-use super::manifest::{self, Pack};
+use super::manifest::{self, Pack, PackInfo, PackKind};
 use crate::music::engine::MusicEngine;
 use crate::voice::engine::VoiceEngine;
 
@@ -58,6 +58,11 @@ fn find(id: &str) -> Result<&'static Pack, ModelError> {
 }
 
 #[tauri::command]
+pub fn list_models() -> Vec<&'static PackInfo> {
+  manifest::packs().iter().map(|pack| &pack.info).collect()
+}
+
+#[tauri::command]
 pub async fn list_packs(manager: State<'_, ModelManager>) -> Result<Vec<PackStatus>, ModelError> {
   let mut statuses = Vec::new();
   for pack in manifest::packs() {
@@ -86,9 +91,9 @@ pub async fn remove_pack(
 ) -> Result<(), ModelError> {
   let pack = find(&id)?;
   // Removing one model never interrupts the other studio.
-  let _suspended = match pack.id.as_str() {
-    "music" => (None, Some(music.suspend().await)),
-    _ => (Some(voice.suspend().await), None),
+  let _suspended = match pack.kind {
+    PackKind::Music => (None, Some(music.suspend().await)),
+    PackKind::Voice => (Some(voice.suspend().await), None),
   };
   manager.remove(pack).await
 }

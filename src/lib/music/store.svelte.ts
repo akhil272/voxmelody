@@ -1,10 +1,21 @@
 import { isTauri } from "@tauri-apps/api/core";
-import { AUTO_BPM, AUTO_KEY, DEFAULT_BPM, DEFAULT_LENGTH, MAX_PROMPT_LENGTH } from "#lib/constants.js";
+import {
+  AUTO,
+  AUTO_BPM,
+  AUTO_KEY,
+  DEFAULT_BPM,
+  DEFAULT_CREATIVITY,
+  DEFAULT_GUIDANCE,
+  DEFAULT_LENGTH,
+  MAX_PROMPT_LENGTH,
+} from "#lib/constants.js";
 import { exportRecording, loadRecording } from "#lib/library/api.js";
+import { models } from "#lib/models/store.svelte.js";
+import { preferences } from "#lib/preferences/store.svelte.js";
 import type { Clip } from "#lib/takes/types.js";
-import { countCharacters, toMusicError } from "#lib/utils.js";
+import { countCharacters, isSeed, parseSeed, toMusicError } from "#lib/utils.js";
 import * as api from "./api.js";
-import type { MusicError, TempoMode } from "./types.js";
+import type { MusicError, MusicOptions, Processor, TempoMode } from "./types.js";
 
 class MusicStore {
   prompt = $state("");
@@ -12,6 +23,12 @@ class MusicStore {
   tempo = $state<TempoMode>("auto");
   bpm = $state(DEFAULT_BPM);
   key = $state(AUTO_KEY);
+  seed = $state("");
+  /** Models need very different numbers of steps. */
+  #customSteps = $state<Record<string, number>>({});
+  guidance = $state(DEFAULT_GUIDANCE);
+  creativity = $state(DEFAULT_CREATIVITY);
+  processor = $state<Processor>("auto");
   generating = $state(false);
   progress = $state(0);
   clip = $state<Clip | null>(null);
@@ -19,7 +36,14 @@ class MusicStore {
   exported = $state(false);
 
   length = $derived(countCharacters(this.prompt.trim()));
-  ready = $derived(!this.generating && this.length > 0 && this.length <= MAX_PROMPT_LENGTH);
+  model = $derived(models.selected("music"));
+  steps = $derived(this.#customSteps[this.model?.id ?? ""] ?? this.model?.music?.steps ?? AUTO);
+  ready = $derived(
+    !this.generating &&
+      this.length > 0 &&
+      this.length <= MAX_PROMPT_LENGTH &&
+      (!preferences.advanced || isSeed(this.seed)),
+  );
 
   async init() {
     if (!isTauri()) return;
@@ -32,18 +56,37 @@ class MusicStore {
     this.error = null;
   }
 
+  setSteps(steps: number) {
+    if (this.model) this.#customSteps[this.model.id] = steps;
+  }
+
+  /** Hidden controls never change the result. */
+  #options(): MusicOptions {
+    const { advanced } = preferences;
+    return {
+      seed: advanced ? parseSeed(this.seed) : null,
+      steps: advanced ? this.steps : AUTO,
+      guidance: advanced && this.model?.music?.guidance ? this.guidance : AUTO,
+      creativity: advanced ? this.creativity : AUTO,
+      cpuOnly: advanced && this.processor === "cpu",
+    };
+  }
+
   async generate() {
-    if (!this.ready) return;
+    const { model } = this;
+    if (!this.ready || !model) return;
     this.generating = true;
     this.progress = 0;
     this.error = null;
     const prompt = this.prompt.trim();
     try {
       const take = await api.compose({
+        model: model.id,
         prompt,
         seconds: this.seconds,
         bpm: this.tempo === "custom" ? this.bpm : AUTO_BPM,
         key: this.key === AUTO_KEY ? "" : this.key,
+        options: this.#options(),
       });
       const clip = { ...take, title: prompt, url: await loadRecording(take.id) };
       if (this.clip) URL.revokeObjectURL(this.clip.url);

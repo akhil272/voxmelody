@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use sha2::{Digest, Sha256};
 
-use super::super::manifest::ModelFile;
+use super::super::manifest::{ModelFile, PackInfo};
 use super::*;
 
 #[derive(Clone, Copy, PartialEq)]
@@ -87,8 +87,7 @@ fn body() -> Vec<u8> {
 
 fn pack(body: &[u8], sources: &[&Server]) -> &'static Pack {
   Box::leak(Box::new(Pack {
-    id: "test".into(),
-    recommended_memory: 0,
+    info: PackInfo { id: "test".into(), ..Default::default() },
     sources: sources.iter().map(|server| server.base.clone()).collect(),
     files: vec![ModelFile {
       path: "nested/file.bin".into(),
@@ -216,8 +215,7 @@ fn pauses_resumes_and_removes() {
 fn refuses_when_disk_is_too_small() {
   let dir = tempfile::tempdir().unwrap();
   let pack: &'static Pack = Box::leak(Box::new(Pack {
-    id: "huge".into(),
-    recommended_memory: 0,
+    info: PackInfo { id: "huge".into(), ..Default::default() },
     sources: vec!["http://127.0.0.1:1/".into()],
     files: vec![ModelFile { path: "a".into(), size: u64::MAX / 4, sha256: "0".repeat(64) }],
   }));
@@ -258,4 +256,29 @@ fn changes_location_and_restores_default() {
     manager.restore_location().await.unwrap();
   });
   assert!(manager.location().is_default && partial.exists());
+}
+
+#[test]
+fn shares_files_between_packs() {
+  let dir = tempfile::tempdir().unwrap();
+  let file = |path: &str, sha256: &str| ModelFile { path: path.into(), size: 4, sha256: sha256.into() };
+  let pack = |id: &str, files| Pack { info: PackInfo { id: id.into(), ..Default::default() }, sources: vec![], files };
+  let packs =
+    [pack("one", vec![file("a", "x"), file("b", "y")]), pack("two", vec![file("sub/c", "x"), file("d", "z")])];
+  for name in ["a", "b"] {
+    let path = storage::file_path(dir.path(), &packs[0], &file(name, ""));
+    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    std::fs::write(path, "data").unwrap();
+  }
+  assert_eq!(storage::download_bytes(dir.path(), &packs[1], &packs), 4);
+  let shared = dir.path().join("two/sub/c");
+  std::fs::create_dir_all(shared.parent().unwrap()).unwrap();
+  std::fs::write(storage::part_path(&shared), "d").unwrap();
+  storage::link_shared(dir.path(), &packs[1], &packs);
+  assert_eq!(storage::pack_progress(dir.path(), &packs[1]), 4);
+  assert!(!storage::part_path(&shared).exists());
+
+  // Removing one pack leaves the other whole.
+  std::fs::remove_dir_all(dir.path().join("one")).unwrap();
+  assert_eq!(std::fs::read(shared).unwrap(), b"data");
 }

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import AudioLinesIcon from "@lucide/svelte/icons/audio-lines";
   import MicIcon from "@lucide/svelte/icons/mic";
   import PlayIcon from "@lucide/svelte/icons/play";
   import { goto } from "$app/navigation";
@@ -12,7 +11,7 @@
   import { voice } from "#lib/voice/store.svelte.js";
 
   const copy = COPY.home;
-  const installed = $derived(models.packs.voice?.state === "installed");
+  const installed = $derived(!!models.selected("voice"));
   const previewing = $derived(voice.activity === "preview");
 
   async function generate() {
@@ -33,7 +32,9 @@
     <p role="alert" class="text-sm text-destructive">{COPY.voice.errors[voice.error]}</p>
   {/if}
   <div class="flex gap-2">
-    <ModelSelect label={copy.voiceModel} model={copy.voiceEngine} icon={AudioLinesIcon} />
+    {#if models.installed("voice").length > 1}
+      <div class="w-44 shrink-0"><ModelSelect kind="voice" /></div>
+    {/if}
     {#if previewing}
       <Button variant="outline" onclick={() => voice.cancel()}>{COPY.voice.cancel}</Button>
     {:else}
