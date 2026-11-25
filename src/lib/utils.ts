@@ -12,6 +12,7 @@ export { toMixError } from "./utils/mix-error.js";
 export { findRecording, toRecordingOptions } from "./utils/recordings.js";
 export { toMusicError } from "./utils/music-error.js";
 export { countCharacters, toFileName } from "./utils/text.js";
+export { addSection, hasLyrics } from "./utils/lyrics.js";
 export { filterModels, toModelOptions } from "./utils/models.js";
 export { isSeed, parseSeed } from "./utils/seed.js";
 export { closestVoice, summariseLanguages, toLanguageOptions } from "./utils/voices.js";

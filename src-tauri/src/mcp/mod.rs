@@ -50,7 +50,7 @@ fn receive(app: &AppHandle, running: &Running, line: &str) {
     Incoming::Reply(message) => send(&message),
     Incoming::Cancel(id) => match with(running, |running| running.remove(&id.to_string())).as_deref() {
       Some(tools::SPEECH) => app.state::<crate::voice::engine::VoiceEngine>().cancel(),
-      Some(tools::MUSIC) => app.state::<crate::music::engine::MusicEngine>().cancel(),
+      Some(tools::MUSIC | tools::SONG) => app.state::<crate::music::engine::MusicEngine>().cancel(),
       _ => {}
     },
     Incoming::Call { id, name, arguments } => {
