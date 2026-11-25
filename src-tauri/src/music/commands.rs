@@ -1,28 +1,34 @@
 use serde::Deserialize;
 use tauri::{AppHandle, Emitter, Manager, State};
 
-use super::engine::{MusicEngine, Request};
+use super::engine::{MusicEngine, Options, Request};
 use super::error::MusicError;
 use crate::library::commands as library;
 use crate::library::store::Kind;
 use crate::models::manager::ModelManager;
+use crate::models::manifest::{self, PackKind};
 use crate::takes::{Take, Takes};
 
 const PROGRESS_EVENT: &str = "music://progress";
 const MAX_CHARACTERS: usize = 500;
 const SECONDS: std::ops::RangeInclusive<u32> = 10..=240;
 const BPM: std::ops::RangeInclusive<u32> = 30..=300;
+const MAX_STEPS: u32 = 100;
+const GUIDANCE: std::ops::RangeInclusive<f32> = 0.0..=15.0;
+const CREATIVITY: std::ops::RangeInclusive<f32> = 0.0..=1.5;
 const NOTES: [&str; 12] = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
 const MODES: [&str; 2] = ["major", "minor"];
 
 #[derive(Deserialize)]
 pub struct MusicRequest {
+  model: String,
   prompt: String,
   seconds: u32,
   /// Zero lets the model choose.
   bpm: u32,
   /// Empty lets the model choose.
   key: String,
+  options: Options,
 }
 
 impl MusicRequest {
@@ -34,6 +40,9 @@ impl MusicRequest {
       && SECONDS.contains(&self.seconds)
       && (self.bpm == 0 || BPM.contains(&self.bpm))
       && (self.key.is_empty() || key)
+      && self.options.steps <= MAX_STEPS
+      && GUIDANCE.contains(&self.options.guidance)
+      && CREATIVITY.contains(&self.options.creativity)
   }
 }
 
@@ -53,13 +62,19 @@ pub async fn compose(
   if !request.is_valid() {
     return Err(MusicError::Request);
   }
+  let pack = manifest::find(&request.model).ok_or(MusicError::Request)?;
+  let model = pack.music.as_ref().ok_or(MusicError::Request)?;
   let (id, output) = takes.reserve();
-  let locate = async { models.installed_dir("music").await.ok_or(MusicError::NotInstalled) };
+  let locate = async {
+    models.installed(&pack.id, PackKind::Music).await.map(|(dir, _)| dir).ok_or(MusicError::NotInstalled)
+  };
   let request = Request {
     prompt: request.prompt.trim(),
     seconds: request.seconds,
     bpm: request.bpm,
     key: &request.key,
+    options: request.options,
+    model,
     output: &output,
   };
   let report = |value: f32| {
@@ -95,7 +110,7 @@ mod tests {
   use super::*;
 
   fn request(prompt: &str, seconds: u32, bpm: u32, key: &str) -> MusicRequest {
-    MusicRequest { prompt: prompt.into(), seconds, bpm, key: key.into() }
+    MusicRequest { model: "music".into(), prompt: prompt.into(), seconds, bpm, key: key.into(), options: Options::default() }
   }
 
   #[test]

@@ -1,26 +1,30 @@
 <script lang="ts">
   import { AlertDialog } from "#lib/components/ui/alert-dialog/index.js";
+  import ModelDetails from "#lib/components/models/model-details.svelte";
+  import FavouriteButton from "#lib/components/models/favourite-button.svelte";
   import { Badge } from "#lib/components/ui/badge/index.js";
   import { Button } from "#lib/components/ui/button/index.js";
   import { Card } from "#lib/components/ui/card/index.js";
   import { Progress } from "#lib/components/ui/progress/index.js";
   import { COPY, PACK_UI } from "#lib/constants.js";
   import { models } from "#lib/models/store.svelte.js";
-  import type { PackId } from "#lib/models/types.js";
+  import type { ModelInfo } from "#lib/models/types.js";
   import { cn, formatBytes, hasEnoughMemory, toPercent } from "#lib/utils.js";
 
-  let { id }: { id: PackId } = $props();
+  let { model, detailed = false }: { model: ModelInfo; detailed?: boolean } = $props();
 
   let confirming = $state(false);
 
   const copy = COPY.models;
-  const ui = $derived(PACK_UI[id]);
+  const id = $derived(model.id);
+  const ui = $derived(PACK_UI[model.kind]);
+  const recommended = $derived(models.recommended(model.kind)?.id === id);
   const Icon = $derived(ui.icon);
   const pack = $derived(models.packs[id]);
   const started = $derived(pack?.state === "downloading" || pack?.state === "paused");
   const moving = $derived((models.location?.movePercent ?? null) !== null);
   const lowMemory = $derived(
-    pack && models.system && !hasEnoughMemory(models.system.memoryBytes, pack.recommendedMemory),
+    pack && models.system && !hasEnoughMemory(models.system.memoryBytes, model.recommendedMemory),
   );
 </script>
 
@@ -30,17 +34,21 @@
       <Icon class={cn("size-5", ui.tone === "voice" ? "text-primary" : "text-secondary")} />
     </span>
     <div class="min-w-0 flex-1">
-      <h3 class="font-semibold">{ui.title}</h3>
-      <p class="text-sm text-muted-foreground">{ui.description}</p>
+      <h3 class="font-semibold">{model.name}</h3>
+      <p class="text-sm text-muted-foreground">{copy.descriptions[id]}</p>
     </div>
-    {#if pack}
+    {#if recommended && pack?.state === "available"}<Badge tone="success">{copy.recommended}</Badge>{/if}
+    {#if pack && pack.state !== "available"}
       <Badge tone={pack.state === "installed" ? "success" : "neutral"}>{copy.states[pack.state]}</Badge>
     {/if}
+    {#if detailed}<FavouriteButton {id} />{/if}
   </div>
 
+  {#if detailed}<ModelDetails {model} />{/if}
   {#if pack && started}
-    <Progress value={toPercent(pack.downloadedBytes, pack.totalBytes)} label={ui.title} tone={ui.tone} />
+    <Progress value={toPercent(pack.downloadedBytes, pack.totalBytes)} label={model.name} tone={ui.tone} />
   {/if}
+  {#if model.restricted}<p class="text-sm text-warning">{copy.restricted}</p>{/if}
   {#if pack?.error}
     <p role="alert" class="text-sm text-destructive">{copy.errors[pack.error]}</p>
   {:else if lowMemory && pack?.state !== "installed"}
@@ -52,7 +60,7 @@
       {#if pack && started}
         {copy.progress(formatBytes(pack.downloadedBytes), formatBytes(pack.totalBytes))}
       {:else if pack}
-        {formatBytes(pack.totalBytes)}
+        {formatBytes(pack.state === "available" ? pack.downloadBytes : pack.totalBytes)}
       {/if}
     </span>
     <div class="flex gap-2">

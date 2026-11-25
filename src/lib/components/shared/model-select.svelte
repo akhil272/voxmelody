@@ -1,23 +1,23 @@
 <script lang="ts">
-  import type { LucideIcon } from "@lucide/svelte";
-  import { Select, SelectContent, SelectItem, SelectTrigger } from "#lib/components/ui/select/index.js";
+  import OptionSelect from "#lib/components/shared/option-select.svelte";
+  import { COPY } from "#lib/constants.js";
+  import { models } from "#lib/models/store.svelte.js";
+  import type { ModelKind } from "#lib/models/types.js";
+  import { preferences } from "#lib/preferences/store.svelte.js";
+  import { toModelOptions } from "#lib/utils.js";
 
-  interface Props {
-    label: string;
-    model: string;
-    icon: LucideIcon;
-    disabled?: boolean;
-  }
+  let { kind, disabled }: { kind: ModelKind; disabled?: boolean } = $props();
 
-  let { label, model, icon: Icon, disabled }: Props = $props();
+  const installed = $derived(models.installed(kind));
+  const selected = $derived(models.selected(kind));
 </script>
 
-<Select type="single" value={model} {disabled}>
-  <SelectTrigger aria-label={label}>
-    <Icon />
-    {model}
-  </SelectTrigger>
-  <SelectContent>
-    <SelectItem value={model} label={model} />
-  </SelectContent>
-</Select>
+{#if selected}
+  <OptionSelect
+    label={COPY.models.model}
+    value={selected.id}
+    options={toModelOptions(installed)}
+    {disabled}
+    onchange={(id: string) => preferences.setModel(kind, id)}
+  />
+{/if}

@@ -3,5 +3,5 @@ mod error;
 mod location;
 pub mod commands;
 pub mod manager;
-mod manifest;
+pub mod manifest;
 mod storage;

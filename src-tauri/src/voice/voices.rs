@@ -1,21 +1,31 @@
 use serde::Serialize;
 
+use crate::models::manifest::PackInfo;
+
+/// Ids are unique within a model.
 #[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Voice {
-  pub id: &'static str,
+  pub id: String,
+  pub model: String,
   pub name: &'static str,
-  pub language: &'static str,
+  pub language: String,
   #[serde(skip)]
   pub speaker: i32,
 }
 
-const fn voice(speaker: i32, id: &'static str, name: &'static str, language: &'static str) -> Voice {
-  Voice { id, name, language, speaker }
+struct Speaker {
+  id: &'static str,
+  name: &'static str,
+  language: &'static str,
+  number: i32,
 }
 
-/// Speakers in the Kokoro 1.0 pack, best default first within each language.
-pub const VOICES: [Voice; 41] = [
+const fn voice(number: i32, id: &'static str, name: &'static str, language: &'static str) -> Speaker {
+  Speaker { id, name, language, number }
+}
+
+/// Kokoro 1.0, best default first within each language.
+const KOKORO: [Speaker; 41] = [
   voice(3, "af_heart", "Heart", "en-us"),
   voice(0, "af_alloy", "Alloy", "en-us"),
   voice(1, "af_aoede", "Aoede", "en-us"),
@@ -59,24 +69,73 @@ pub const VOICES: [Voice; 41] = [
   voice(44, "pm_santa", "Santa", "pt-br"),
 ];
 
-pub fn find(id: &str) -> Option<&'static Voice> {
-  VOICES.iter().find(|voice| voice.id == id)
+/// Kitten 0.8.
+const KITTEN: [(i32, &str); 8] =
+  [(1, "Bella"), (0, "Jasper"), (3, "Luna"), (2, "Bruno"), (5, "Rosie"), (4, "Hugo"), (7, "Kiki"), (6, "Leo")];
+
+/// Supertonic 3 voices speak every language.
+const SUPERTONIC: [(i32, &str); 10] = [
+  (0, "Female 1"),
+  (1, "Female 2"),
+  (2, "Female 3"),
+  (3, "Female 4"),
+  (4, "Female 5"),
+  (5, "Male 1"),
+  (6, "Male 2"),
+  (7, "Male 3"),
+  (8, "Male 4"),
+  (9, "Male 5"),
+];
+
+/// The voices of one model, the default first.
+pub fn of(model: &PackInfo) -> Vec<Voice> {
+  let voice = |id: String, name, language: &str, speaker| Voice {
+    id,
+    model: model.id.clone(),
+    name,
+    language: language.into(),
+    speaker,
+  };
+  let every_language = |speakers: &[(i32, &'static str)]| {
+    let spoken = |language: &String| {
+      speakers.iter().map(|(number, name)| voice(format!("{language}-{number}"), name, language, *number)).collect()
+    };
+    model.languages.iter().flat_map(|language| -> Vec<Voice> { spoken(language) }).collect()
+  };
+  match model.voice.as_ref().map(|voice| voice.family.as_str()) {
+    Some("kokoro") => KOKORO.iter().map(|s| voice(s.id.into(), s.name, s.language, s.number)).collect(),
+    Some("kitten") => every_language(&KITTEN),
+    Some("supertonic") => every_language(&SUPERTONIC),
+    _ => Vec::new(),
+  }
+}
+
+pub fn find(model: &PackInfo, id: &str) -> Option<Voice> {
+  of(model).into_iter().find(|voice| voice.id == id)
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::models::manifest;
+  use std::collections::HashSet;
 
   #[test]
-  fn ids_and_speakers_are_unique() {
-    let ids: std::collections::HashSet<_> = VOICES.iter().map(|voice| voice.id).collect();
-    let speakers: std::collections::HashSet<_> = VOICES.iter().map(|voice| voice.speaker).collect();
-    assert_eq!((ids.len(), speakers.len()), (VOICES.len(), VOICES.len()));
+  fn every_voice_model_has_voices_for_its_languages() {
+    for pack in manifest::packs().iter().filter(|pack| pack.voice.is_some()) {
+      let voices = of(pack);
+      let ids: HashSet<_> = voices.iter().map(|voice| &voice.id).collect();
+      assert_eq!(ids.len(), voices.len(), "{}", pack.id);
+      let spoken: HashSet<_> = voices.iter().map(|voice| &voice.language).collect();
+      assert_eq!(spoken, pack.languages.iter().collect(), "{}", pack.id);
+      let speakers: HashSet<_> = voices.iter().map(|voice| (&voice.language, voice.speaker)).collect();
+      assert_eq!(speakers.len(), voices.len(), "{}", pack.id);
+    }
   }
 
   #[test]
-  fn ids_match_languages() {
-    for voice in &VOICES {
+  fn kokoro_ids_match_languages() {
+    for voice in &KOKORO {
       let expected = match &voice.id[..1] {
         "a" => "en-us",
         "b" => "en-gb",

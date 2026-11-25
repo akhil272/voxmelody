@@ -32,6 +32,37 @@ pub fn pack_progress(root: &Path, pack: &Pack) -> u64 {
   pack.files.iter().map(|file| file_progress(root, pack, file)).sum()
 }
 
+/// The same file inside another installed pack.
+pub fn shared_copy(root: &Path, pack: &Pack, file: &ModelFile, packs: &[Pack]) -> Option<PathBuf> {
+  packs
+    .iter()
+    .filter(|other| other.id != pack.id)
+    .flat_map(|other| other.files.iter().map(move |candidate| (other, candidate)))
+    .find(|(other, candidate)| candidate.sha256 == file.sha256 && is_installed(root, other, candidate))
+    .map(|(other, candidate)| file_path(root, other, candidate))
+}
+
+/// Reuses files other packs already have, so they take no extra space.
+pub fn link_shared(root: &Path, pack: &Pack, packs: &[Pack]) {
+  for file in pack.files.iter().filter(|file| !is_installed(root, pack, file)) {
+    let Some(source) = shared_copy(root, pack, file, packs) else { continue };
+    let target = file_path(root, pack, file);
+    if let Some(parent) = target.parent() {
+      let _ = std::fs::create_dir_all(parent);
+    }
+    // Drives without links download the file instead.
+    if std::fs::hard_link(source, &target).is_ok() {
+      let _ = std::fs::remove_file(part_path(&target));
+    }
+  }
+}
+
+/// Bytes a download of this pack would still fetch.
+pub fn download_bytes(root: &Path, pack: &Pack, packs: &[Pack]) -> u64 {
+  let missing = |file: &&ModelFile| !is_installed(root, pack, file) && shared_copy(root, pack, file, packs).is_none();
+  pack.files.iter().filter(missing).map(|file| file.size - file_progress(root, pack, file)).sum()
+}
+
 pub fn is_pack_installed(root: &Path, pack: &Pack) -> bool {
   pack.files.iter().all(|file| is_installed(root, pack, file))
 }
