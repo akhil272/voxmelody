@@ -84,6 +84,12 @@ Same test machine. Times are the engine process alone, including model loading; 
 - Requested 84 BPM; four GPU tracks measured about 86, one of them as double time. The key was passed to the model but not measured.
 - The engine and its libraries import no networking library and no Visual C++ runtime.
 
+## Phase 5 additions (2026-11-25)
+
+- In the app: automatic saving, live update while the Library is open, playback, rename, cancel rename, delete, restart, files moved away, files put back, and deleting a missing recording (the moved file is kept).
+- Native dialogs: Export wrote a byte-identical file; Relink refused another WAV and accepted the renamed original in a folder with a non-ASCII name. Exporting a recording onto itself is guarded in code but was not driven through the dialog.
+- Unit tests cover a damaged index, an unusable Music folder, two windows saving at once, and same-sized tracks.
+
 ## Known issues to handle
 
 1. Solved in Phase 4: exact length without a silent ending (D021).

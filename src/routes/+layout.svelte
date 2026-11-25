@@ -4,6 +4,7 @@
   import TitleBar from "#lib/components/layout/title-bar.svelte";
   import { onMount } from "svelte";
   import { voice } from "#lib/voice/store.svelte.js";
+  import { library } from "#lib/library/store.svelte.js";
   import { music } from "#lib/music/store.svelte.js";
   import { models } from "#lib/models/store.svelte.js";
   import type { LayoutProps } from "./$types";
@@ -12,6 +13,7 @@
 
   onMount(() => {
     void models.init();
+    void library.init();
     void music.init();
     void voice.init();
   });

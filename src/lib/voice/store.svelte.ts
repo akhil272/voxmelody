@@ -1,8 +1,9 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { DEFAULT_SPEED, MAX_SCRIPT_LENGTH } from "#lib/constants.js";
-import { exportTake, loadClip } from "#lib/takes/api.js";
+import { exportRecording, loadRecording } from "#lib/library/api.js";
+import { loadTake } from "#lib/takes/api.js";
 import type { Clip } from "#lib/takes/types.js";
-import { countCharacters, toFileName, toVoiceError } from "#lib/utils.js";
+import { countCharacters, toVoiceError } from "#lib/utils.js";
 import * as api from "./api.js";
 import type { Voice, VoiceError } from "./types.js";
 
@@ -51,7 +52,8 @@ class VoiceStore {
     const clip = await this.#speak("preview");
     if (!clip) return;
     this.#preview = new Audio(clip.url);
-    await this.#preview.play();
+    // Rejects when another request stops the preview before it starts.
+    await this.#preview.play().catch(() => undefined);
   }
 
   async generate() {
@@ -66,13 +68,20 @@ class VoiceStore {
     await api.cancelSpeech();
   }
 
+  /** Drops a clip that was deleted from the library. */
+  forget(id: number) {
+    if (this.clip?.id !== id) return;
+    URL.revokeObjectURL(this.clip.url);
+    this.clip = null;
+  }
+
   async export() {
     if (!this.clip) return;
     this.error = null;
     try {
-      this.exported = await exportTake(this.clip.id, `${toFileName(this.clip.title)}.wav`);
-    } catch (error) {
-      this.error = toVoiceError(error);
+      this.exported = await exportRecording(this.clip.id, this.clip.title);
+    } catch {
+      this.error = "output";
     }
   }
 
@@ -97,7 +106,8 @@ class VoiceStore {
         speed: this.speed,
         preview: activity === "preview",
       });
-      return await loadClip(take, title);
+      const url = await (activity === "preview" ? loadTake(take.id) : loadRecording(take.id));
+      return { ...take, title, url };
     } catch (error) {
       const code = toVoiceError(error);
       this.error = code === "cancelled" ? null : code;
