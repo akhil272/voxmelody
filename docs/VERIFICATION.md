@@ -48,6 +48,13 @@ Voice plus ducked music, normalised to about −14 LUFS, stayed fully intelligib
 - The mockup's "Aria (MusicGen)" option must become ACE-Step.
 - The Piper lessac voice used for speed testing has its own dataset licence terms, so it is not approved for shipping.
 
+## Phase 2 additions (2026-11-25)
+
+- Full CPU-only music pipeline, 60 s track: LM 14 s plus synth 114 s; peak memory 2.75 GB (LM) and 3.61 GB (synth). On the GTX 1060, synth peaked at 1.36 GB of RAM.
+- Voice pack trimmed from 378 to 30 files (367 MB) covering English, Spanish, French, Hindi, Italian and Portuguese. English, Spanish and French ran. Spanish phoneme tokens matched the full set exactly; audio differs slightly on every run even with identical input. Chinese and Japanese files are not included.
+- In the app: download, pause, resume, forced kill then resume, proxy failure, both packs installed from Hugging Face, and a cross-drive move. Voice and music then generated from those files with the engine tools.
+- Cross-drive move of 3.6 GB took 456 s in an unoptimised debug build; release speed is not measured.
+
 ## Known issues to handle
 
 1. Music can end early: the 30 s track had 4.9 s of trailing silence. Generate longer, trim silence, fade, and cut to length.
@@ -60,6 +67,6 @@ Voice plus ducked music, normalised to about −14 LUFS, stayed fully intelligib
 
 - macOS: no Mac available. The project supports Metal, but it needs a CI build and a real-device run.
 - AMD and Intel GPUs, and PCs with 8 GB RAM.
-- Full CPU-only pipeline including the LM step, and Qwen3-TTS.
+- Qwen3-TTS.
 - Generation with the network adapter physically off.
 - Microsoft Store acceptance.
