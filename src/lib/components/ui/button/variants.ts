@@ -8,6 +8,7 @@ export const buttonVariants = tv({
       secondary: "bg-secondary text-secondary-foreground hover:bg-secondary-hover focus-visible:ring-secondary/40",
       outline: "border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground",
       ghost: "text-foreground hover:bg-muted",
+      destructive: "bg-destructive text-primary-foreground hover:bg-destructive/90 focus-visible:ring-destructive/40",
       close: "text-foreground hover:bg-destructive hover:text-primary-foreground",
       link: "text-secondary hover:text-secondary-hover",
     },

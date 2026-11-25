@@ -26,6 +26,8 @@ Read `docs/HANDOVER.md` (what is next) and `docs/DECISIONS.md` (what is settled)
 - Import project code through the `#lib` alias, and Lucide icons by path (`@lucide/svelte/icons/<name>`).
 - Keep the installer small: models are never bundled, and new dependencies must justify their size.
 - No network calls except user-started model downloads. No telemetry.
+- Rust returns stable error codes; map them to user copy in `src/lib/constants`.
+- Regenerate `src-tauri/models.json` with `scripts/build-manifest.mjs`; never edit it by hand.
 - Verify each model's weight licence (not only its code licence) before adding it.
 
 ## Brand
@@ -47,6 +49,6 @@ Headings use Space Grotesk; body and UI use Inter. Keep clear space around the l
 
 ## Before finishing any task
 
-1. `pnpm lint`, `pnpm build`, and `cargo check` in `src-tauri` pass.
+1. `pnpm lint`, `pnpm build`, `cargo test` and `cargo clippy` in `src-tauri` pass.
 2. Update `docs/HANDOVER.md`.
 3. Record major decisions in `docs/DECISIONS.md`.
