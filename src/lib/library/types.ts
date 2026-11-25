@@ -10,5 +10,7 @@ export interface Recording {
   durationMs: number;
   peaks: number[];
   createdMs: number;
+  /** True when it contains a cloned voice. */
+  cloned: boolean;
   available: boolean;
 }

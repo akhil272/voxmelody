@@ -7,11 +7,14 @@ use crate::models::manifest::PackInfo;
 pub struct Voice {
   pub id: String,
   pub model: String,
-  pub name: &'static str,
+  pub name: String,
   pub language: String,
   #[serde(skip)]
   pub speaker: i32,
 }
+
+/// The family that speaks in the voice of a recording.
+const CLONING: &str = "pocket";
 
 struct Speaker {
   id: &'static str,
@@ -87,12 +90,12 @@ const SUPERTONIC: [(i32, &str); 10] = [
   (9, "Male 5"),
 ];
 
-/// The voices of one model, the default first.
+/// The voices of one model, the default first. Models for cloning have none of their own.
 pub fn of(model: &PackInfo) -> Vec<Voice> {
-  let voice = |id: String, name, language: &str, speaker| Voice {
+  let voice = |id: String, name: &str, language: &str, speaker| Voice {
     id,
     model: model.id.clone(),
-    name,
+    name: name.into(),
     language: language.into(),
     speaker,
   };
@@ -110,6 +113,10 @@ pub fn of(model: &PackInfo) -> Vec<Voice> {
   }
 }
 
+pub fn can_clone(model: &PackInfo) -> bool {
+  model.voice.as_ref().is_some_and(|voice| voice.family == CLONING)
+}
+
 pub fn find(model: &PackInfo, id: &str) -> Option<Voice> {
   of(model).into_iter().find(|voice| voice.id == id)
 }
@@ -122,7 +129,7 @@ mod tests {
 
   #[test]
   fn every_voice_model_has_voices_for_its_languages() {
-    for pack in manifest::packs().iter().filter(|pack| pack.voice.is_some()) {
+    for pack in manifest::packs().iter().filter(|pack| pack.voice.is_some() && !can_clone(pack)) {
       let voices = of(pack);
       let ids: HashSet<_> = voices.iter().map(|voice| &voice.id).collect();
       assert_eq!(ids.len(), voices.len(), "{}", pack.id);

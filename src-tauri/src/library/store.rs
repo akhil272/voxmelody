@@ -34,6 +34,8 @@ struct Entry {
   duration_ms: u64,
   peaks: Vec<f32>,
   created_ms: u64,
+  #[serde(default)]
+  cloned: bool,
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -52,6 +54,8 @@ pub struct Recording {
   pub duration_ms: u64,
   pub peaks: Vec<f32>,
   pub created_ms: u64,
+  /// True when it contains a cloned voice.
+  pub cloned: bool,
   /// False when the file was moved or deleted outside the app.
   pub available: bool,
 }
@@ -62,6 +66,7 @@ pub struct NewRecording<'a> {
   pub source: &'a Path,
   pub duration_ms: u64,
   pub peaks: Vec<f32>,
+  pub cloned: bool,
 }
 
 /// The index is read and written under a lock, so two open windows agree.
@@ -101,6 +106,7 @@ impl Library {
       duration_ms: new.duration_ms,
       peaks: new.peaks,
       created_ms: SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |age| age.as_millis() as u64),
+      cloned: new.cloned,
     };
     index.next_id = entry.id + 1;
     index.entries.push(entry.clone());
@@ -120,6 +126,11 @@ impl Library {
   /// The same, for a recording that must be of one kind.
   pub fn open_kind(&self, id: u64, kind: Kind) -> Result<(PathBuf, String), LibraryError> {
     self.open_where(id, |entry| entry.kind == kind)
+  }
+
+  pub fn is_cloned(&self, id: u64) -> Result<bool, LibraryError> {
+    let _lock = self.lock()?;
+    Ok(find(&self.load()?, id)?.cloned)
   }
 
   fn open_where(&self, id: u64, accepts: impl Fn(&Entry) -> bool) -> Result<(PathBuf, String), LibraryError> {
@@ -177,6 +188,7 @@ impl Library {
       duration_ms: entry.duration_ms,
       peaks: entry.peaks.clone(),
       created_ms: entry.created_ms,
+      cloned: entry.cloned,
       available: self.is_available(entry),
     }
   }

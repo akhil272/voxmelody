@@ -8,7 +8,7 @@ fn library(dir: &tempfile::TempDir) -> Library {
 fn add(library: &Library, dir: &tempfile::TempDir, title: &str, bytes: usize) -> Recording {
   let source = dir.path().join("take.wav");
   fs::write(&source, vec![title.as_bytes()[0]; bytes]).unwrap();
-  let new = NewRecording { kind: Kind::Voice, title, source: &source, duration_ms: 1000, peaks: vec![0.5] };
+  let new = NewRecording { kind: Kind::Voice, title, source: &source, duration_ms: 1000, peaks: vec![0.5], cloned: false };
   let recording = library.add(new).unwrap();
   assert!(!source.exists());
   recording
@@ -87,7 +87,7 @@ fn tells_same_sized_tracks_apart() {
   // A new recording takes the freed file name.
   let source = dir.path().join("take.wav");
   fs::write(&source, vec![9; 10]).unwrap();
-  let new = NewRecording { kind: Kind::Music, title: "Alpha", source: &source, duration_ms: 1, peaks: vec![] };
+  let new = NewRecording { kind: Kind::Music, title: "Alpha", source: &source, duration_ms: 1, peaks: vec![], cloned: false };
   let new = library.add(new).unwrap().id;
   assert_eq!(library.open(new).unwrap().0, path);
   assert_eq!(library.open(old), Err(LibraryError::Missing));
@@ -131,7 +131,7 @@ fn windows_can_add_at_the_same_time() {
         for number in 0..5 {
           let source = dir.path().join(format!("{window}.wav"));
           fs::write(&source, vec![1; 10 + number]).unwrap();
-          let new = NewRecording { kind: Kind::Music, title: "Same", source: &source, duration_ms: 1, peaks: vec![] };
+          let new = NewRecording { kind: Kind::Music, title: "Same", source: &source, duration_ms: 1, peaks: vec![], cloned: false };
           library.add(new).unwrap();
         }
       });

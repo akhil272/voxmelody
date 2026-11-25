@@ -1,4 +1,11 @@
 export { MAX_TITLE_LENGTH } from "./constants/library.js";
+export {
+  CONSENT_OPTIONS,
+  MAX_RECORDING_SECONDS,
+  MAX_SAMPLE_BYTES,
+  MAX_VOICE_NAME_LENGTH,
+  SAMPLE_RATE,
+} from "./constants/clones.js";
 export { COPY } from "./constants/copy.js";
 export {
   AUTO_BPM,

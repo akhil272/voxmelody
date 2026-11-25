@@ -12,6 +12,9 @@ class ModelStore {
   location = $state<LocationStatus | null>(null);
   locationError = $state<ModelError | null>(null);
 
+  /** The model that speaks in cloned voices. */
+  cloning = $derived(this.catalog.find((model) => model.voice?.family === "pocket"));
+
   async init() {
     if (!isTauri()) return;
     // Subscribe first so no update is missed between listing and listening.

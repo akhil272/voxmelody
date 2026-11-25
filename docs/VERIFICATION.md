@@ -43,7 +43,9 @@ Voice plus ducked music, normalised to about −14 LUFS, stayed fully intelligib
 | sherpa-onnx 1.x | Apache-2.0, bundles GPL-3.0 espeak-ng | n/a | Yes, as a separate process with source offer |
 | Kitten TTS 0.8 (Nano, Micro, Mini) | Apache-2.0 | Apache-2.0 | Yes |
 | Supertonic 3 | MIT | OpenRAIL-M (use restrictions, including disclosing machine-made content) | Yes, labelled |
-| Qwen3-TTS 0.6B | Apache-2.0 | Apache-2.0 | Later (voice cloning, not tested) |
+| Pocket TTS | MIT | CC-BY-4.0, with prohibited uses | Yes, labelled (D034) |
+| ZipVoice | Apache-2.0 | Apache-2.0, trained on CC-BY-NC data | No |
+| Qwen3-TTS 0.6B | Apache-2.0 | Apache-2.0 | Later (not tested) |
 | Piper voices | MIT or GPL-3.0 | Varies by voice | Only voices vetted one by one |
 | MusicGen | MIT | **CC-BY-NC-4.0** | **No** |
 
@@ -122,6 +124,21 @@ Release dates and authors come from the model cards; ACE-Step and Kitten dates a
 - The same seed gave identical audio twice and another seed did not. Creativity and steps changed the result.
 - In the app: simple and advanced pages, filters, sorting, search, favourites, download, a Resume that linked shared files instead of fetching them, generating with three voice models and SFT, an invalid seed, switching back to simple, and removing one model without harming others.
 - Not checked: Turbo HQ and XL on the CPU, the memory recommendations for them, musical quality, and moving shared files between two real drives (unit test only).
+
+## Voice cloning (2026-11-25)
+
+- Pitch followed the sample: 198 Hz gave 174 to 203 Hz, and 117 Hz gave 103 to 110 Hz. Likeness was not judged by a person.
+- Dates, times, numbers and names transcribed correctly in every sample. One price was read wrongly, so prices are spelled out as for Supertonic.
+- A 1,900-character script made 102 s of audio in 36 s, including loading the model.
+- With the original samples, "Chapter one" became "After one" in most tries, and another voice added "And" before sentences. With silence around the sample and an end at a pause, 12 of 12 openings were right across both voices; a stray first word remains possible.
+- Speed has no effect with this model, so the control is hidden. More steps did not help.
+- In the app, with a fake microphone: record, too short, silence, a broken file, an MP3 file, consent required, consent asked again for another owner, names with accents and Chinese, use, generate, Cloned label, play, delete. Creating a voice without consent is refused by Rust.
+- Not checked: a real microphone and its permission prompt, renaming, the long-run quality of many voices, and macOS.
+
+## Claude Code connection (2026-11-25)
+
+- Over real pipes: handshake, tools, speech (2.4 s), a 12 s track (20 s), a mix, cancel, wrong recordings, a cloned voice refused, out-of-range and undocumented arguments, and closing (0.1 s, no processes left).
+- Not checked: inside a Claude Code session.
 
 ## Known issues to handle
 
