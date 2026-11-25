@@ -7,8 +7,8 @@ A phase starts only when the previous exit criteria are met.
 | 0 | Verification | Models, licences, real generation | Go/no-go recorded | Done: GO |
 | 1 | Foundation | Repo, docs, Tauri + SvelteKit, brand, app shell | Desktop build runs | Done |
 | 2 | Model manager | Separate voice and music packs; mirrors, checksum, resume, remove; hardware check; custom models folder | Models install and move between drives | Done on Windows |
-| 3 | Voice Studio | Kokoro engine, voices, speed, preview, export | All words spoken; works with network off | Next |
-| 4 | Music Studio | ACE-Step engine, prompt, length, BPM, key, cancel | Exact length, no silent tail; GPU and CPU | Planned |
+| 3 | Voice Studio | Kokoro engine, voices, speed, preview, export | All words spoken; works with network off | Done on Windows |
+| 4 | Music Studio | ACE-Step engine, prompt, length, BPM, key, cancel | Exact length, no silent tail; GPU and CPU | Next |
 | 5 | Library | History, playback, rename, export, delete, Relink | Survives restart and moved files | Planned |
 | 6 | Mix | Duck music under voice, loudness, fades | −14 LUFS, voice intelligible | Planned |
 | 7 | Model catalog | Browse and download many models, recommended by default but not restricted; favourites; choose a model per generation; filter by type, size and licence | Several models per type install side by side | Planned |

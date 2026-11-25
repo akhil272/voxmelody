@@ -7,7 +7,7 @@ Read `docs/HANDOVER.md` (what is next) and `docs/DECISIONS.md` (what is settled)
 ## Stack
 
 - Tauri 2 (Rust) shell, SvelteKit (static, Svelte 5 runes), TypeScript, Tailwind, shadcn/ui via shadcn-svelte
-- Native engines run as separate processes: sherpa-onnx (voice), acestep.cpp (music). No Python at runtime.
+- Native engines run as separate processes: `engines/voice` on sherpa-onnx (voice), acestep.cpp (music). No Python at runtime.
 
 ## UI rules
 
@@ -28,6 +28,8 @@ Read `docs/HANDOVER.md` (what is next) and `docs/DECISIONS.md` (what is settled)
 - No network calls except user-started model downloads. No telemetry.
 - Rust returns stable error codes; map them to user copy in `src/lib/constants`.
 - Regenerate `src-tauri/models.json` with `scripts/build-manifest.mjs`; never edit it by hand.
+- Never pass user text or model paths to an engine as command-line arguments; send JSON on stdin.
+- Add every bundled component and model to `THIRD_PARTY_LICENSES.md`.
 - Verify each model's weight licence (not only its code licence) before adding it.
 
 ## Brand
@@ -49,6 +51,6 @@ Headings use Space Grotesk; body and UI use Inter. Keep clear space around the l
 
 ## Before finishing any task
 
-1. `pnpm lint`, `pnpm build`, `cargo test` and `cargo clippy` in `src-tauri` pass.
+1. `pnpm lint`, `pnpm build`, `cargo test` and `cargo clippy` in `src-tauri` (and the changed engine) pass.
 2. Update `docs/HANDOVER.md`.
 3. Record major decisions in `docs/DECISIONS.md`.

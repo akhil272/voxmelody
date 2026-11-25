@@ -2,7 +2,7 @@
 
 Generate voice. Create music. All offline, on your machine.
 
-VoxMelody is a free, open-source desktop app for Windows and macOS. It is in early development; generation is not available yet.
+VoxMelody is a free, open-source desktop app for Windows and macOS. It is in early development; voice generation works on Windows, and music is next.
 
 ## Develop
 

@@ -146,6 +146,15 @@ impl ModelManager {
     if active { self.downloading(pack, storage::pack_progress(&self.root(), pack)) } else { self.idle(pack, None) }
   }
 
+  /// Folder of a pack that is ready to use.
+  pub async fn installed_dir(&self, id: &str) -> Option<PathBuf> {
+    // Waits for moves and removals to finish.
+    let _jobs = self.jobs.lock().await;
+    let pack = manifest::find(id)?;
+    let root = self.root();
+    storage::is_pack_installed(&root, pack).then(|| root.join(&pack.id))
+  }
+
   /// Starts or resumes a pack. Does nothing if it is already downloading.
   pub async fn start(&self, pack: &'static Pack) -> Result<(), ModelError> {
     let mut jobs = self.jobs.lock().await;

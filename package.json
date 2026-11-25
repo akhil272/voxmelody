@@ -15,7 +15,8 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "eslint src && pnpm check",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "engines": "node scripts/build-engines.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
