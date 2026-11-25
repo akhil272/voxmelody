@@ -1,9 +1,11 @@
 import { isTauri } from "@tauri-apps/api/core";
-import { DEFAULT_SPEED, MAX_SCRIPT_LENGTH } from "#lib/constants.js";
+import { AUTO, DEFAULT_PAUSE, DEFAULT_SPEED, MAX_SCRIPT_LENGTH } from "#lib/constants.js";
 import { exportRecording, loadRecording } from "#lib/library/api.js";
+import { models } from "#lib/models/store.svelte.js";
+import { preferences } from "#lib/preferences/store.svelte.js";
 import { loadTake } from "#lib/takes/api.js";
 import type { Clip } from "#lib/takes/types.js";
-import { countCharacters, toVoiceError } from "#lib/utils.js";
+import { closestVoice, countCharacters, toVoiceError } from "#lib/utils.js";
 import * as api from "./api.js";
 import type { Voice, VoiceError } from "./types.js";
 
@@ -11,9 +13,12 @@ type Activity = "idle" | "preview" | "generate";
 
 class VoiceStore {
   voices = $state<Voice[]>([]);
-  voiceId = $state("");
+  choice = $state<Voice | null>(null);
   script = $state("");
   speed = $state(DEFAULT_SPEED);
+  pause = $state(DEFAULT_PAUSE);
+  threads = $state(AUTO);
+  steps = $state(AUTO);
   activity = $state<Activity>("idle");
   progress = $state(0);
   clip = $state<Clip | null>(null);
@@ -21,7 +26,8 @@ class VoiceStore {
   exported = $state(false);
   #preview: HTMLAudioElement | null = null;
 
-  voice = $derived(this.voices.find((voice) => voice.id === this.voiceId));
+  available = $derived(this.voices.filter(({ model }) => model === models.selected("voice")?.id));
+  voice = $derived(closestVoice(this.available, this.choice));
   length = $derived(countCharacters(this.script));
   ready = $derived(
     this.activity === "idle" && !!this.voice && this.script.trim() !== "" && this.length <= MAX_SCRIPT_LENGTH,
@@ -33,11 +39,10 @@ class VoiceStore {
       if (this.activity !== "idle") this.progress = value;
     });
     this.voices = await api.listVoices();
-    this.voiceId = this.voices[0]?.id ?? "";
   }
 
   setVoice(id: string) {
-    this.voiceId = id;
+    this.choice = this.available.find((voice) => voice.id === id) ?? null;
   }
 
   clearError() {
@@ -45,7 +50,8 @@ class VoiceStore {
   }
 
   setLanguage(language: string) {
-    this.voiceId = this.voices.find((voice) => voice.language === language)?.id ?? this.voiceId;
+    const speaking = this.available.filter((voice) => voice.language === language);
+    this.choice = speaking.find(({ name }) => name === this.voice?.name) ?? speaking[0] ?? null;
   }
 
   async playPreview() {
@@ -93,7 +99,9 @@ class VoiceStore {
   }
 
   async #speak(activity: Exclude<Activity, "idle">): Promise<Clip | null> {
-    if (!this.ready) return null;
+    const { voice } = this;
+    if (!this.ready || !voice) return null;
+    const { advanced } = preferences;
     this.#stopPreview();
     this.activity = activity;
     this.progress = 0;
@@ -102,9 +110,14 @@ class VoiceStore {
     try {
       const take = await api.speak({
         text: this.script,
-        voice: this.voiceId,
+        model: voice.model,
+        voice: voice.id,
         speed: this.speed,
         preview: activity === "preview",
+        // Hidden controls never change the result.
+        pause: advanced ? this.pause : DEFAULT_PAUSE,
+        threads: advanced ? this.threads : AUTO,
+        steps: advanced ? this.steps : AUTO,
       });
       const url = await (activity === "preview" ? loadTake(take.id) : loadRecording(take.id));
       return { ...take, title, url };

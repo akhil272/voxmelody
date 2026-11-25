@@ -10,7 +10,7 @@ use tokio::sync::{Mutex, watch};
 
 use super::error::ModelError;
 use super::location::{self, LocationStore};
-use super::manifest::{self, Pack};
+use super::manifest::{self, Pack, PackKind};
 use super::{download, storage};
 
 const DISK_RESERVE: u64 = 256 * 1024 * 1024;
@@ -32,7 +32,8 @@ pub struct PackStatus {
   pub state: PackState,
   pub downloaded_bytes: u64,
   pub total_bytes: u64,
-  pub recommended_memory: u64,
+  /// What is left to fetch; files shared with installed packs are not.
+  pub download_bytes: u64,
   pub error: Option<ModelError>,
 }
 
@@ -146,8 +147,14 @@ impl ModelManager {
     if active { self.downloading(pack, storage::pack_progress(&self.root(), pack)) } else { self.idle(pack, None) }
   }
 
+  /// Folder and details of a pack of one kind that is ready to use.
+  pub async fn installed(&self, id: &str, kind: PackKind) -> Option<(PathBuf, &'static Pack)> {
+    let pack = manifest::find(id).filter(|pack| pack.kind == kind)?;
+    Some((self.installed_dir(id).await?, pack))
+  }
+
   /// Folder of a pack that is ready to use.
-  pub async fn installed_dir(&self, id: &str) -> Option<PathBuf> {
+  async fn installed_dir(&self, id: &str) -> Option<PathBuf> {
     // Waits for moves and removals to finish.
     let _jobs = self.jobs.lock().await;
     let pack = manifest::find(id)?;
@@ -164,6 +171,7 @@ impl ModelManager {
     if !self.location().available {
       return Err(ModelError::LocationMissing);
     }
+    storage::link_shared(&self.root(), pack, manifest::packs());
     let missing = pack.total_bytes() - storage::pack_progress(&self.root(), pack);
     let reserved = self.pending_bytes(&jobs);
     if missing > 0 && missing + reserved + DISK_RESERVE > self.free_space()? {
@@ -206,7 +214,7 @@ impl ModelManager {
   }
 
   fn downloading(&self, pack: &Pack, downloaded: u64) -> PackStatus {
-    status(pack, PackState::Downloading, downloaded, None)
+    status(&self.root(), pack, PackState::Downloading, downloaded, None)
   }
 
   fn idle(&self, pack: &Pack, error: Option<ModelError>) -> PackStatus {
@@ -230,13 +238,13 @@ async fn stop(job: Option<Job>) {
   }
 }
 
-fn status(pack: &Pack, state: PackState, downloaded_bytes: u64, error: Option<ModelError>) -> PackStatus {
+fn status(root: &Path, pack: &Pack, state: PackState, downloaded_bytes: u64, error: Option<ModelError>) -> PackStatus {
   PackStatus {
     id: pack.id.clone(),
     state,
     downloaded_bytes,
     total_bytes: pack.total_bytes(),
-    recommended_memory: pack.recommended_memory,
+    download_bytes: if state == PackState::Downloading { 0 } else { storage::download_bytes(root, pack, manifest::packs()) },
     error,
   }
 }
@@ -248,7 +256,7 @@ fn idle_status(root: &Path, pack: &Pack, error: Option<ModelError>) -> PackStatu
     0 => PackState::Available,
     _ => PackState::Paused,
   };
-  status(pack, state, downloaded, error)
+  status(root, pack, state, downloaded, error)
 }
 
 struct Worker {
@@ -261,7 +269,7 @@ impl Worker {
   async fn run(self, pack: &'static Pack, cancel: download::Cancel) {
     let last = SyncMutex::new(Instant::now());
     let report = |bytes: u64| {
-      throttled(&last, || (self.listener)(status(pack, PackState::Downloading, bytes, None)));
+      throttled(&last, || (self.listener)(status(&self.root, pack, PackState::Downloading, bytes, None)));
     };
     let result = download::download_pack(&self.client, &self.root, pack, cancel, report).await;
     let error = result.err().filter(|error| *error != ModelError::Paused);

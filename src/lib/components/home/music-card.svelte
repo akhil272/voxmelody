@@ -13,7 +13,7 @@
 
   async function generate() {
     await goto(ROUTES.music);
-    if (models.packs.music?.state === "installed") await music.generate();
+    if (models.selected("music")) await music.generate();
   }
 </script>
 
@@ -29,7 +29,9 @@
     <p role="alert" class="text-sm text-destructive">{COPY.music.errors[music.error]}</p>
   {/if}
   <div class="flex gap-2">
-    <ModelSelect label={copy.musicModel} model={copy.musicEngine} icon={MusicIcon} />
+    {#if models.installed("music").length > 1}
+      <div class="w-44 shrink-0"><ModelSelect kind="music" /></div>
+    {/if}
     <Button variant="secondary" class="flex-1" disabled={!music.ready} onclick={generate}>{copy.generateMusic}</Button>
   </div>
 </StudioCard>

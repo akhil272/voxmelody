@@ -15,10 +15,15 @@ const IDLE_TIMEOUT: Duration = Duration::from_secs(120);
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Request<'a> {
+  pub family: &'a str,
+  pub model: &'a str,
   pub text: &'a str,
   pub language: &'a str,
   pub speaker: i32,
   pub speed: f32,
+  pub pause: f32,
+  pub threads: u32,
+  pub steps: u32,
   pub output: &'a Path,
 }
 

@@ -4,6 +4,7 @@ mod library;
 mod mix;
 mod models;
 mod music;
+mod preferences;
 mod takes;
 mod voice;
 
@@ -22,6 +23,9 @@ pub fn run() {
       voice::commands::setup(app.handle())
     })
     .invoke_handler(tauri::generate_handler![
+      preferences::read_preferences,
+      preferences::save_preferences,
+      models::commands::list_models,
       models::commands::list_packs,
       models::commands::download_pack,
       models::commands::pause_pack,

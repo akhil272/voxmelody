@@ -1,4 +1,3 @@
-export type VoiceLanguage = "en-us" | "en-gb" | "es" | "fr" | "hi" | "it" | "pt-br";
 export type VoiceError =
   | "notInstalled"
   | "noSpeech"
@@ -12,12 +11,17 @@ export type VoiceError =
 export interface Voice {
   id: string;
   name: string;
-  language: VoiceLanguage;
+  model: string;
+  language: string;
 }
 
 export interface SpeechRequest {
   text: string;
+  model: string;
   voice: string;
   speed: number;
   preview: boolean;
+  pause: number;
+  threads: number;
+  steps: number;
 }
