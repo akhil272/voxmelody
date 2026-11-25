@@ -1,0 +1,23 @@
+[package]
+name = "voxmelody-voice"
+version = "0.1.0"
+description = "Offline speech engine process for VoxMelody"
+license = "GPL-3.0-only"
+repository = "https://github.com/akhil272/voxmelody"
+edition = "2024"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# 2.x drops numbers and unknown words; see docs/DECISIONS.md D003.
+sherpa-onnx = "=1.13.8"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

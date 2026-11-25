@@ -6,8 +6,8 @@
   "build": {
     "frontendDist": "../build",
     "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build"
+    "beforeDevCommand": "pnpm engines && pnpm dev",
+    "beforeBuildCommand": "pnpm engines && pnpm build"
   },
   "app": {
     "windows": [
@@ -22,8 +22,8 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost",
-      "devCsp": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost ws://localhost:5173",
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' ipc: http://ipc.localhost",
+      "devCsp": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' ipc: http://ipc.localhost ws://localhost:5173",
       "dangerousDisableAssetCspModification": ["style-src"]
     }
   },
@@ -32,6 +32,8 @@
     "targets": "all",
     "license": "GPL-3.0-only",
     "category": "Music",
+    "resources": { "../LICENSE": "LICENSE", "../THIRD_PARTY_LICENSES.md": "THIRD_PARTY_LICENSES.md" },
+    "externalBin": ["binaries/voxmelody-voice"],
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
   }
 }

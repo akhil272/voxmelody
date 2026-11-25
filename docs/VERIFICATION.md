@@ -55,12 +55,21 @@ Voice plus ducked music, normalised to about −14 LUFS, stayed fully intelligib
 - In the app: download, pause, resume, forced kill then resume, proxy failure, both packs installed from Hugging Face, and a cross-drive move. Voice and music then generated from those files with the engine tools.
 - Cross-drive move of 3.6 GB took 456 s in an unoptimised debug build; release speed is not measured.
 
+## Phase 3 additions (2026-11-25)
+
+- The stock sherpa-onnx command-line tool garbles accents, fails in folders with non-ASCII names, and reads a script such as "--help" as an option. Our own engine process passes all three.
+- 41 voices in 7 language options ran. English, Spanish, French, Italian, Portuguese and Hindi were transcribed back; differences were spelling or transcriber errors, confirmed for Spanish and for a 111-word unpunctuated sentence (111 of 111 words).
+- 5,000 characters produced 245 s of audio in 82 s. A warm one-line request takes about 0.5 s; a cold start adds about 2 s. Peak engine memory 480 MB on a short script.
+- Words in scripts the voice does not support, such as Japanese in an English voice, may be skipped. Emoji are read aloud by name. Speeds above 1.5× blur words, so the app stops there.
+- The engine imports no networking library and had no open sockets while running.
+- In the app: preview, generate, play, seek, language change, export, cancel (0.1 s), and removing the voice during generation.
+
 ## Known issues to handle
 
 1. Music can end early: the 30 s track had 4.9 s of trailing silence. Generate longer, trim silence, fade, and cut to length.
 2. Raw music peaks at 0 dBFS with flat peaks; normalise on export.
 3. VAE decode was the slowest logged synth stage (25.7 s of the 90 s run); tune VAE chunk size.
-4. Kokoro reads "Dr." as a sentence end; normalise abbreviations first.
+4. Solved in Phase 3: common English abbreviations are expanded before speech.
 5. acestep.cpp has no GitHub release binaries; build them in CI from a pinned commit.
 
 ## Not verified
@@ -68,5 +77,5 @@ Voice plus ducked music, normalised to about −14 LUFS, stayed fully intelligib
 - macOS: no Mac available. The project supports Metal, but it needs a CI build and a real-device run.
 - AMD and Intel GPUs, and PCs with 8 GB RAM.
 - Qwen3-TTS.
-- Generation with the network adapter physically off.
+- Generation with the network adapter physically off (the voice engine has no network code; music not yet checked).
 - Microsoft Store acceptance.

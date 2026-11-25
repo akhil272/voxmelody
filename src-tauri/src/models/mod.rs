@@ -2,6 +2,6 @@ mod download;
 mod error;
 mod location;
 pub mod commands;
-mod manager;
+pub mod manager;
 mod manifest;
 mod storage;

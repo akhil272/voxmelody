@@ -49,3 +49,12 @@ Users can keep models on any drive. Models always live in a `VoxMelody Models` f
 
 ## D016: Open model catalog later (2026-11-25)
 Users may download any compatible model, with recommended ones as defaults, and mark favourites (Phase 7). It is deferred because it needs engine support per model family, a variable number of packs in the UI, and licence display. Until then keep pack ids and file lists in the manifest, not in Rust.
+
+## D017: Own voice engine process (2026-11-25)
+`engines/voice` is a small Rust program using the official sherpa-onnx 1.13.8 bindings, statically linked. It reads JSON lines on stdin and stays loaded between requests, stopping after two idle minutes. It runs inside the voice pack folder with relative paths because the library cannot open non-ASCII paths on Windows. Cancelling kills the process. It replaces the stock command-line tool. Built by `pnpm engines` and bundled as a Tauri sidecar.
+
+## D018: Engine is suspended for model changes (2026-11-25)
+Removing or moving models suspends the voice engine first and holds it stopped, so model files are never in use. Any new engine must follow the same rule.
+
+## D019: Takes are temporary until the Library exists (2026-11-25)
+Only the newest preview and newest recording are kept in the cache; Export saves a WAV. Phase 5 makes recordings permanent. Compressed export formats are undecided.

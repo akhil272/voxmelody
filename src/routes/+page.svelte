@@ -1,16 +1,13 @@
 <script lang="ts">
   import ArrowRightIcon from "@lucide/svelte/icons/arrow-right";
-  import AudioLinesIcon from "@lucide/svelte/icons/audio-lines";
   import InfoIcon from "@lucide/svelte/icons/info";
-  import MicIcon from "@lucide/svelte/icons/mic";
   import MusicIcon from "@lucide/svelte/icons/music";
-  import PlayIcon from "@lucide/svelte/icons/play";
   import HeroWave from "#lib/components/brand/hero-wave.svelte";
   import Wordmark from "#lib/components/brand/wordmark.svelte";
   import StudioCard from "#lib/components/home/studio-card.svelte";
+  import VoiceCard from "#lib/components/home/voice-card.svelte";
   import ModelSelect from "#lib/components/shared/model-select.svelte";
   import { Button } from "#lib/components/ui/button/index.js";
-  import { Textarea } from "#lib/components/ui/textarea/index.js";
   import { COPY, ROUTES } from "#lib/constants.js";
 
   const copy = COPY.home;
@@ -33,17 +30,7 @@
   </section>
 
   <div class="grid grid-cols-2 gap-4">
-    <StudioCard title={copy.voiceTitle} description={copy.voiceDescription} icon={MicIcon} tone="voice">
-      <Textarea rows={1} aria-label={copy.voiceTitle} placeholder={copy.voicePlaceholder} disabled />
-      <div class="flex gap-2">
-        <ModelSelect label={copy.voiceModel} model={copy.voiceEngine} icon={AudioLinesIcon} disabled />
-        <Button variant="outline" disabled>
-          <PlayIcon />
-          {copy.preview}
-        </Button>
-        <Button class="flex-1" disabled>{copy.generate}</Button>
-      </div>
-    </StudioCard>
+    <VoiceCard />
 
     <StudioCard title={copy.musicTitle} description={copy.musicDescription} icon={MusicIcon} tone="music">
       <ModelSelect label={copy.musicModel} model={copy.musicEngine} icon={MusicIcon} disabled />
