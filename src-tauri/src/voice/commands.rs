@@ -1,15 +1,11 @@
-use std::path::PathBuf;
-
-use serde::{Deserialize, Serialize};
-use tauri::ipc::Response;
+use serde::Deserialize;
 use tauri::{AppHandle, Emitter, Manager, State};
-use tauri_plugin_dialog::DialogExt;
 
 use super::engine::{Request, VoiceEngine};
 use super::error::VoiceError;
-use super::takes::{TakeKind, Takes};
 use super::voices::{self, VOICES, Voice};
 use crate::models::manager::ModelManager;
+use crate::takes::{Take, TakeKind, Takes};
 
 const PROGRESS_EVENT: &str = "voice://progress";
 const MAX_CHARACTERS: usize = 10_000;
@@ -24,24 +20,8 @@ pub struct SpeechRequest {
   preview: bool,
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Take {
-  id: u64,
-  duration_ms: u64,
-  peaks: Vec<f32>,
-}
-
-/// Engines sit beside the app executable.
-fn engine_path() -> std::io::Result<PathBuf> {
-  let program = std::env::current_exe()?;
-  Ok(program.with_file_name(format!("voxmelody-voice{}", std::env::consts::EXE_SUFFIX)))
-}
-
 pub fn setup(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
-  let cache = crate::models::commands::data_dir(app)?.join("cache").join("voice");
-  app.manage(VoiceEngine::new(engine_path()?));
-  app.manage(Takes::new(cache)?);
+  app.manage(VoiceEngine::new(crate::engine::path("voxmelody-voice")?));
   Ok(())
 }
 
@@ -78,7 +58,7 @@ pub async fn speak(
   let (text, kind) = if request.preview {
     (preview_text(&request.text), TakeKind::Preview)
   } else {
-    (request.text.as_str(), TakeKind::Full)
+    (request.text.as_str(), TakeKind::Voice)
   };
   let (id, output) = takes.reserve();
   let locate = async { models.installed_dir("voice").await.ok_or(VoiceError::NotInstalled) };
@@ -102,34 +82,6 @@ pub async fn speak(
 #[tauri::command]
 pub fn cancel_speech(engine: State<'_, VoiceEngine>) {
   engine.cancel();
-}
-
-#[tauri::command]
-pub async fn read_take(takes: State<'_, Takes>, id: u64) -> Result<Response, VoiceError> {
-  let path = takes.find(id).ok_or(VoiceError::Output)?;
-  Ok(Response::new(tokio::fs::read(path).await.map_err(|_| VoiceError::Output)?))
-}
-
-/// Returns false when the user closes the save dialog.
-#[tauri::command]
-pub async fn export_take(
-  app: AppHandle,
-  takes: State<'_, Takes>,
-  id: u64,
-  name: String,
-) -> Result<bool, VoiceError> {
-  let source = takes.find(id).ok_or(VoiceError::Output)?;
-  let (sender, receiver) = tokio::sync::oneshot::channel();
-  app.dialog().file().set_file_name(name).add_filter("WAV", &["wav"]).save_file(move |file| {
-    let _ = sender.send(file);
-  });
-  let Ok(Some(file)) = receiver.await else { return Ok(false) };
-  let mut target = file.into_path().map_err(|_| VoiceError::Output)?;
-  if target.extension().is_none() {
-    target.set_extension("wav");
-  }
-  tokio::fs::copy(source, target).await.map_err(|_| VoiceError::Output)?;
-  Ok(true)
 }
 
 #[cfg(test)]

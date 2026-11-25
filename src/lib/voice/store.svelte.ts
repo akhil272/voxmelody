@@ -1,8 +1,10 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { DEFAULT_SPEED, MAX_SCRIPT_LENGTH } from "#lib/constants.js";
+import { exportTake, loadClip } from "#lib/takes/api.js";
+import type { Clip } from "#lib/takes/types.js";
 import { countCharacters, toFileName, toVoiceError } from "#lib/utils.js";
 import * as api from "./api.js";
-import type { Clip, Voice, VoiceError } from "./types.js";
+import type { Voice, VoiceError } from "./types.js";
 
 type Activity = "idle" | "preview" | "generate";
 
@@ -68,7 +70,7 @@ class VoiceStore {
     if (!this.clip) return;
     this.error = null;
     try {
-      this.exported = await api.exportTake(this.clip.id, `${toFileName(this.clip.title)}.wav`);
+      this.exported = await exportTake(this.clip.id, `${toFileName(this.clip.title)}.wav`);
     } catch (error) {
       this.error = toVoiceError(error);
     }
@@ -95,8 +97,7 @@ class VoiceStore {
         speed: this.speed,
         preview: activity === "preview",
       });
-      const audio = new Blob([await api.readTake(take.id)], { type: "audio/wav" });
-      return { ...take, title, url: URL.createObjectURL(audio) };
+      return await loadClip(take, title);
     } catch (error) {
       const code = toVoiceError(error);
       this.error = code === "cancelled" ? null : code;
