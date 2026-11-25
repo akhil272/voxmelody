@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -9,12 +10,24 @@ use super::error::MusicError;
 use super::master;
 use crate::audio::wav;
 use crate::engine;
+use crate::models::manifest::MusicModel;
 
 /// A take that ends early is composed once more before it is extended.
 const ATTEMPTS: u32 = 2;
 /// Room to trim a silent start without shortening the track.
 const SPARE_SECONDS: u32 = 2;
 const WAVEFORM_BARS: usize = 160;
+
+/// Fine control; zero or `None` keeps the model's own choice.
+#[derive(Debug, Clone, Copy, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Options {
+  pub seed: Option<u32>,
+  pub steps: u32,
+  pub guidance: f32,
+  pub creativity: f32,
+  pub cpu_only: bool,
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct Request<'a> {
@@ -24,6 +37,8 @@ pub struct Request<'a> {
   pub bpm: u32,
   /// Empty lets the model choose.
   pub key: &'a str,
+  pub options: Options,
+  pub model: &'a MusicModel,
   pub output: &'a Path,
 }
 
@@ -36,6 +51,13 @@ enum Command<'a> {
     seconds: u32,
     bpm: u32,
     key: &'a str,
+    seed: Option<u32>,
+    steps: u32,
+    guidance: f32,
+    creativity: f32,
+    lm: &'a str,
+    dit: &'a str,
+    graphics_memory: u64,
     cpu_only: bool,
     models: &'a Path,
     output: &'a Path,
@@ -83,8 +105,8 @@ impl Process {
 /// Only one track is made at a time.
 #[derive(Default)]
 struct Slot {
-  /// Set once the GPU fails where the CPU succeeds.
-  cpu_only: bool,
+  /// Models whose GPU run fails where the CPU succeeds.
+  cpu_only: HashSet<PathBuf>,
 }
 
 pub struct MusicEngine {
@@ -175,7 +197,7 @@ struct Job<'a, P> {
 impl<P: Fn(f32)> Job<'_, P> {
   async fn run(&mut self, slot: &mut Slot) -> Result<Track, MusicError> {
     for attempt in 1..=ATTEMPTS {
-      let rate = self.generate(slot).await?;
+      let rate = self.generate(slot, attempt).await?;
       if let Some(track) = self.finish(rate, attempt == ATTEMPTS).await? {
         return Ok(track);
       }
@@ -184,25 +206,37 @@ impl<P: Fn(f32)> Job<'_, P> {
   }
 
   /// Too little graphics memory or a driver fault falls back to the CPU.
-  async fn generate(&mut self, slot: &mut Slot) -> Result<u32, MusicError> {
+  async fn generate(&mut self, slot: &mut Slot, attempt: u32) -> Result<u32, MusicError> {
     let mut used_gpu = false;
-    let result = self.process(slot.cpu_only, &mut used_gpu).await;
+    let cpu_only = self.request.options.cpu_only || slot.cpu_only.contains(self.models);
+    let result = self.process(cpu_only, attempt, &mut used_gpu).await;
     if !used_gpu || !matches!(result, Err(MusicError::Engine)) {
       return result;
     }
     log::warn!("music engine failed on the GPU; using the CPU");
-    let result = self.process(true, &mut used_gpu).await;
-    slot.cpu_only = result.is_ok();
+    let result = self.process(true, attempt, &mut used_gpu).await;
+    if result.is_ok() {
+      slot.cpu_only.insert(self.models.to_path_buf());
+    }
     result
   }
 
   /// Runs one engine process and returns the sample rate of the raw audio.
-  async fn process(&mut self, cpu_only: bool, used_gpu: &mut bool) -> Result<u32, MusicError> {
+  async fn process(&mut self, cpu_only: bool, attempt: u32, used_gpu: &mut bool) -> Result<u32, MusicError> {
+    let (options, model) = (self.request.options, self.request.model);
     let command = Command::Compose {
       prompt: self.request.prompt,
       seconds: self.request.seconds + SPARE_SECONDS,
       bpm: self.request.bpm,
       key: self.request.key,
+      // Composing again needs other choices, but stays repeatable.
+      seed: options.seed.map(|seed| seed.wrapping_add(attempt - 1)),
+      steps: if options.steps == 0 { model.steps } else { options.steps },
+      guidance: options.guidance,
+      creativity: options.creativity,
+      lm: &model.lm,
+      dit: &model.dit,
+      graphics_memory: model.graphics_memory,
       cpu_only,
       models: self.models,
       output: self.raw,

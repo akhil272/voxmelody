@@ -3,14 +3,15 @@
 Last updated: 2026-11-25
 
 ## Current state
-- The model manager, Voice Studio, Music Studio, Library and Mix work on Windows and are merged to local `dev`. Not pushed. Only `main` and `dev` branches remain.
-- Tests: 62 in `src-tauri`, 6 in `engines/voice`.
+- The model catalog, Voice Studio, Music Studio, Library and Mix work on Windows and are merged to `dev`. Work up to Mix is pushed. Only `main` and `dev` branches remain.
+- Do not open a pull request to `main` unless the owner asks.
+- Tests: 65 in `src-tauri`, 7 in `engines/voice`.
 
 ## Next
-1. Phase 7 Model catalog, on `feature/catalog` from `dev` (`PHASES.md`, D016).
-2. Owner listens to voice, music and mix samples and confirms they sound good enough. Mixing levels are constants in `src-tauri/src/mix/render.rs`.
-3. Test music on AMD, Intel and 8 GB RAM PCs; decide on integrated GPUs (D022).
-4. Music tracks now pass through the limiter (D028); tracks made earlier keep their old loudness.
+1. Phase 8 Release, on `feature/release` from `dev` (`PHASES.md`): CI, macOS, signing, Store and DMG, updater.
+2. Owner listens to voice, music and mix samples from every model. Mixing levels are constants in `src-tauri/src/mix/render.rs`.
+3. Native listeners check Supertonic's weaker languages (`VERIFICATION.md`).
+4. Test music on AMD, Intel and 8 GB RAM PCs; decide on integrated GPUs (D022).
 
 ## Testing
 - `cargo test` in `src-tauri` covers downloads, moves, mastering and the Library.
@@ -22,6 +23,8 @@ Last updated: 2026-11-25
 - The owner tests an installed copy on this PC. Stop test processes by path or id, never by name.
 
 ## Watch out
+- To add a model: edit `scripts/build-manifest.mjs`, run it, add its description in `src/lib/constants/copy.ts`, its licence in `THIRD_PARTY_LICENSES.md`, and voices in `src-tauri/src/voice/voices.rs`.
+- `.verify/new` holds the catalog's test models, about 9 GB.
 - Read the known issues and unverified list in `VERIFICATION.md` first.
 - `panic = "abort"` is on in release: handle errors with `Result`, never rely on catching panics.
 - `src-tauri/tauri.macos.conf.json` repeats the window settings; keep both files in sync.

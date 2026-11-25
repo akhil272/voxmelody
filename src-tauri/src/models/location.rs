@@ -62,14 +62,15 @@ pub fn resolve(chosen: &Path) -> PathBuf {
   }
 }
 
-struct Item {
+struct Item<'a> {
+  sha256: &'a str,
   from: PathBuf,
   to: PathBuf,
   size: u64,
 }
 
 /// Every finished or partial file under `from` that `to` does not already have.
-fn missing_items(from: &Path, to: &Path, packs: &[Pack]) -> Vec<Item> {
+fn missing_items<'a>(from: &Path, to: &Path, packs: &'a [Pack]) -> Vec<Item<'a>> {
   let mut items = Vec::new();
   for pack in packs {
     for file in &pack.files {
@@ -79,7 +80,8 @@ fn missing_items(from: &Path, to: &Path, packs: &[Pack]) -> Vec<Item> {
       let (source, target) = (storage::file_path(from, pack, file), storage::file_path(to, pack, file));
       for (from, to) in [(storage::part_path(&source), storage::part_path(&target)), (source, target)] {
         if let Ok(meta) = std::fs::metadata(&from) {
-          items.push(Item { from, to, size: meta.len() });
+          let partial = from.extension().is_some_and(|extension| extension == "part");
+          items.push(Item { sha256: if partial { "" } else { &file.sha256 }, from, to, size: meta.len() });
         }
       }
     }
@@ -107,19 +109,24 @@ pub async fn copy_models(
 }
 
 async fn transfer(
-  items: &[Item],
+  items: &[Item<'_>],
   to: &Path,
   reserve: u64,
   on_progress: impl Fn(u64, u64),
 ) -> Result<(), ModelError> {
   // Links are instant and need no space, but only work within one drive.
-  let mut remaining = Vec::new();
+  let mut remaining: Vec<&Item> = Vec::new();
+  let mut repeated: Vec<(&Item, &Item)> = Vec::new();
   for item in items {
     if let Some(parent) = item.to.parent() {
       fs::create_dir_all(parent).await?;
     }
     if fs::hard_link(&item.from, &item.to).await.is_err() {
-      remaining.push(item);
+      // Files shared between models are copied once and linked again.
+      match remaining.iter().find(|other| !item.sha256.is_empty() && other.sha256 == item.sha256) {
+        Some(other) => repeated.push((other, item)),
+        None => remaining.push(item),
+      }
     }
   }
   let total: u64 = remaining.iter().map(|item| item.size).sum();
@@ -131,10 +138,19 @@ async fn transfer(
     copy_file(item, |bytes| on_progress(copied + bytes, total)).await?;
     copied += item.size;
   }
+  for (original, item) in repeated {
+    let _ = fs::remove_file(&item.to).await;
+    if fs::hard_link(&original.to, &item.to).await.is_err() {
+      if item.size + reserve > storage::free_space(to)? {
+        return Err(ModelError::DiskFull);
+      }
+      copy_file(item, |_| {}).await?;
+    }
+  }
   Ok(())
 }
 
-async fn copy_file(item: &Item, on_progress: impl Fn(u64)) -> Result<(), ModelError> {
+async fn copy_file(item: &Item<'_>, on_progress: impl Fn(u64)) -> Result<(), ModelError> {
   let (mut input, mut output) = (fs::File::open(&item.from).await?, fs::File::create(&item.to).await?);
   let (mut buffer, mut written, mut hasher) = (vec![0; COPY_BUFFER], 0, Sha256::new());
   loop {
@@ -182,12 +198,11 @@ pub async fn remove_models(root: &Path, packs: &[Pack]) {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::models::manifest::ModelFile;
+  use crate::models::manifest::{ModelFile, PackInfo};
 
   fn packs() -> Vec<Pack> {
     vec![Pack {
-      id: "voice".into(),
-      recommended_memory: 0,
+      info: PackInfo { id: "voice".into(), ..Default::default() },
       sources: vec![],
       files: ["a.bin", "sub/b.bin", "c.bin"]
         .map(|path| ModelFile { path: path.into(), size: 4, sha256: String::new() })
@@ -247,6 +262,26 @@ mod tests {
     std::fs::write(to.path().join("voice/a.bin"), "x").unwrap();
     copy_models(from.path(), to.path(), &packs(), 0, |_, _| {}).await.unwrap();
     assert_eq!(std::fs::read(to.path().join("voice/a.bin")).unwrap(), b"aaaa");
+  }
+
+  #[tokio::test]
+  async fn copies_shared_files_once() {
+    let (from, to) = (tempfile::tempdir().unwrap(), tempfile::tempdir().unwrap());
+    let mut packs = packs();
+    for file in &mut packs[0].files[..2] {
+      file.sha256 = "same".into();
+    }
+    // Unfinished files at the destination force copies instead of links.
+    for dir in [&from, &to] {
+      std::fs::create_dir_all(dir.path().join("voice/sub")).unwrap();
+    }
+    for name in ["voice/a.bin", "voice/sub/b.bin"] {
+      std::fs::write(from.path().join(name), "aaaa").unwrap();
+      std::fs::write(to.path().join(name), "x").unwrap();
+    }
+    copy_models(from.path(), to.path(), &packs, 0, |_, total| assert_eq!(total, 4)).await.unwrap();
+    assert_eq!(std::fs::read(to.path().join("voice/a.bin")).unwrap(), b"aaaa");
+    assert_eq!(std::fs::read(to.path().join("voice/sub/b.bin")).unwrap(), b"aaaa");
   }
 
   #[test]

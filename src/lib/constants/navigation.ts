@@ -1,5 +1,6 @@
 import type { LucideIcon } from "@lucide/svelte";
 import BlendIcon from "@lucide/svelte/icons/blend";
+import BoxIcon from "@lucide/svelte/icons/box";
 import FolderIcon from "@lucide/svelte/icons/folder";
 import HouseIcon from "@lucide/svelte/icons/house";
 import InfoIcon from "@lucide/svelte/icons/info";
@@ -20,6 +21,7 @@ export const ROUTES = {
   music: "/music",
   mix: "/mix",
   library: "/library",
+  models: "/models",
   settings: "/settings",
   about: "/about",
 } as const;
@@ -30,6 +32,7 @@ export const MAIN_NAV: NavItem[] = [
   { href: ROUTES.music, label: COPY.nav.music, icon: MusicIcon },
   { href: ROUTES.mix, label: COPY.nav.mix, icon: BlendIcon },
   { href: ROUTES.library, label: COPY.nav.library, icon: FolderIcon },
+  { href: ROUTES.models, label: COPY.nav.models, icon: BoxIcon },
   { href: ROUTES.settings, label: COPY.nav.settings, icon: SettingsIcon },
 ];
 

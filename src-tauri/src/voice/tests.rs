@@ -10,7 +10,18 @@ fn setup() -> Option<(VoiceEngine, PathBuf, tempfile::TempDir)> {
 }
 
 fn request<'a>(text: &'a str, output: &'a Path) -> Request<'a> {
-  Request { text, language: "en-us", speaker: 3, speed: 1.0, output }
+  Request {
+    family: "kokoro",
+    model: "model.onnx",
+    text,
+    language: "en-us",
+    speaker: 3,
+    speed: 1.0,
+    pause: 1.0,
+    threads: 0,
+    steps: 0,
+    output,
+  }
 }
 
 #[tokio::test]

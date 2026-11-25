@@ -4,11 +4,12 @@
   import EmptyPage from "#lib/components/shared/empty-page.svelte";
   import { COPY, PACK_UI } from "#lib/constants.js";
   import { models } from "#lib/models/store.svelte.js";
-  import type { PackId } from "#lib/models/types.js";
+  import type { ModelKind } from "#lib/models/types.js";
 
-  let { id, children }: { id: PackId; children: Snippet } = $props();
+  let { id, children }: { id: ModelKind; children: Snippet } = $props();
 
-  const installed = $derived(models.packs[id]?.state === "installed");
+  const installed = $derived(!!models.selected(id));
+  const recommended = $derived(models.recommended(id));
   const page = $derived(COPY.pages[id]);
 </script>
 
@@ -21,6 +22,6 @@
     description={page.description}
     icon={PACK_UI[id].icon}
   >
-    <div class="mt-4 w-full max-w-lg"><ModelCard {id} /></div>
+    {#if recommended}<div class="mt-4 w-full max-w-lg"><ModelCard model={recommended} /></div>{/if}
   </EmptyPage>
 {/if}

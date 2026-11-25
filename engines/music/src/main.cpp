@@ -23,9 +23,7 @@
 
 namespace fs = std::filesystem;
 
-static const char * LM_FILE   = "acestep-5Hz-lm-0.6B-Q8_0.gguf";
 static const char * TEXT_FILE = "Qwen3-Embedding-0.6B-Q8_0.gguf";
-static const char * DIT_FILE  = "acestep-v15-turbo-Q4_K_M.gguf";
 static const char * VAE_FILE  = "vae-BF16.gguf";
 
 static const int    CODES_PER_SECOND  = 5;
@@ -36,9 +34,8 @@ static const int    PROMPT_TOKENS     = 3072;
 static const int    METADATA_TOKENS   = 150;
 // Ten identical codes are two seconds of nothing happening.
 static const size_t FROZEN_CODES      = 10;
-// Below this the models do not fit in dedicated memory.
+// Enough dedicated memory for the smallest model.
 static const size_t MIN_GPU_MEMORY    = 3500ull * 1024 * 1024;
-static const int    DIT_STEPS         = 8;
 // Small tiles decode faster and keep the peak under 2 GB of graphics memory.
 static const int    VAE_CHUNK         = 256;
 
@@ -85,9 +82,9 @@ static bool tick(void * data) {
 }
 
 // The largest dedicated GPU that can hold the models, or null for the CPU.
-static ggml_backend_dev_t find_gpu() {
+static ggml_backend_dev_t find_gpu(size_t needed) {
     ggml_backend_dev_t best        = nullptr;
-    size_t             best_memory = MIN_GPU_MEMORY;
+    size_t             best_memory = std::max(needed, MIN_GPU_MEMORY);
     for (size_t i = 0; i < ggml_backend_dev_count(); i++) {
         ggml_backend_dev_t dev = ggml_backend_dev_get(i);
         if (ggml_backend_dev_type(dev) != GGML_BACKEND_DEVICE_TYPE_GPU) {
@@ -128,10 +125,10 @@ static size_t playing_codes(const std::vector<std::string> & codes) {
 
 // Composes past the requested length, then keeps only what is needed, so the
 // track never ends early and no time is spent on audio that is cut away.
-static bool compose(ModelStore * store, const AceRequest & request, int seconds, AceRequest * plan) {
+static bool compose(ModelStore * store, const AceRequest & request, const std::string & lm_file, int seconds, AceRequest * plan) {
     AceLmParams params;
     ace_lm_default_params(&params);
-    params.model_path = LM_FILE;
+    params.model_path = lm_file.c_str();
     params.max_batch  = 1;
 
     const size_t             needed = (size_t) seconds * CODES_PER_SECOND;
@@ -139,7 +136,9 @@ static bool compose(ModelStore * store, const AceRequest & request, int seconds,
     for (int attempt = 0; attempt < LM_ATTEMPTS && best.size() < needed; attempt++) {
         AceRequest in = request;
         in.duration   = (float) (seconds + (EXTRA_SECONDS + seconds / 4) * (attempt + 1));
-        in.lm_seed    = -1;
+        if (in.lm_seed >= 0) {
+            in.lm_seed += attempt;
+        }
         // A cache sized to the request saves over 1 GB of graphics memory.
         params.max_seq = PROMPT_TOKENS + (int) in.duration * CODES_PER_SECOND;
         request_resolve_lm_seed(&in);
@@ -175,21 +174,20 @@ static bool compose(ModelStore * store, const AceRequest & request, int seconds,
     return true;
 }
 
-static bool synthesize(ModelStore * store, AceRequest plan, AceAudio * audio) {
+static bool synthesize(ModelStore * store, AceRequest plan, const std::string & dit_file, AceAudio * audio) {
     AceSynthParams params;
     ace_synth_default_params(&params);
     params.text_encoder_path = TEXT_FILE;
-    params.dit_path          = DIT_FILE;
+    params.dit_path          = dit_file.c_str();
     params.vae_path          = VAE_FILE;
     params.vae_chunk         = VAE_CHUNK;
 
-    plan.seed = -1;
     request_resolve_seed(&plan);
     AceSynth * synth = ace_synth_load(store, &params);
     if (!synth) {
         return false;
     }
-    Progress      dit = { LM_SHARE, DIT_SHARE, DIT_STEPS };
+    Progress      dit = { LM_SHARE, DIT_SHARE, (float) plan.inference_steps };
     AceSynthJob * job = ace_synth_job_run_dit(synth, &plan, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, 1, tick, &dit);
     bool          ok  = job != nullptr;
     if (ok) {
@@ -228,7 +226,7 @@ static int run(yyjson_val * root) {
     }
 
     backend_load();
-    ggml_backend_dev_t gpu = yyjson_get_bool(yyjson_obj_get(root, "cpuOnly")) ? nullptr : find_gpu();
+    ggml_backend_dev_t gpu = yyjson_get_bool(yyjson_obj_get(root, "cpuOnly")) ? nullptr : find_gpu((size_t) yyjson_get_uint(yyjson_obj_get(root, "graphicsMemory")));
     if (op == "devices") {
         emit("{\"event\":\"device\",\"gpu\":" + (gpu ? quote(ggml_backend_dev_description(gpu)) : std::string("null")) + "}");
         return 0;
@@ -242,7 +240,19 @@ static int run(yyjson_val * root) {
     request.bpm               = yyjson_get_int(yyjson_obj_get(root, "bpm"));
     const int         seconds = yyjson_get_int(yyjson_obj_get(root, "seconds"));
     const std::string output  = text("output");
-    if (request.caption.empty() || output.empty() || seconds < 1) {
+    const std::string lm      = text("lm");
+    const std::string dit     = text("dit");
+    request.inference_steps   = yyjson_get_int(yyjson_obj_get(root, "steps"));
+    request.guidance_scale    = (float) yyjson_get_num(yyjson_obj_get(root, "guidance"));
+    const float creativity    = (float) yyjson_get_num(yyjson_obj_get(root, "creativity"));
+    if (creativity > 0) {
+        request.lm_temperature = creativity;
+    }
+    // Without a seed every track is new.
+    yyjson_val * seed = yyjson_obj_get(root, "seed");
+    request.seed      = yyjson_is_uint(seed) ? (int64_t) yyjson_get_uint(seed) : -1;
+    request.lm_seed   = request.seed;
+    if (request.caption.empty() || output.empty() || lm.empty() || dit.empty() || seconds < 1 || request.inference_steps < 1) {
         return fail("request");
     }
     if (!backend_set_device(gpu ? ggml_backend_dev_name(gpu) : "CPU")) {
@@ -257,7 +267,7 @@ static int run(yyjson_val * root) {
     if (error) {
         return fail("model");
     }
-    for (const char * file : { LM_FILE, TEXT_FILE, DIT_FILE, VAE_FILE }) {
+    for (const char * file : { lm.c_str(), TEXT_FILE, dit.c_str(), VAE_FILE }) {
         if (!fs::exists(file, error)) {
             return fail("model");
         }
@@ -267,7 +277,7 @@ static int run(yyjson_val * root) {
     AceRequest   plan;
     request_init(&plan);
     AceAudio audio = {};
-    if (!compose(store, request, seconds, &plan) || !synthesize(store, plan, &audio)) {
+    if (!compose(store, request, lm, seconds, &plan) || !synthesize(store, plan, dit, &audio)) {
         return fail("engine");
     }
     if (!write_audio(fs::u8path(output), audio)) {

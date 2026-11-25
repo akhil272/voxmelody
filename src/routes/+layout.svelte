@@ -6,12 +6,14 @@
   import { voice } from "#lib/voice/store.svelte.js";
   import { library } from "#lib/library/store.svelte.js";
   import { music } from "#lib/music/store.svelte.js";
+  import { preferences } from "#lib/preferences/store.svelte.js";
   import { models } from "#lib/models/store.svelte.js";
   import type { LayoutProps } from "./$types";
 
   let { children }: LayoutProps = $props();
 
   onMount(() => {
+    void preferences.init();
     void models.init();
     void library.init();
     void music.init();

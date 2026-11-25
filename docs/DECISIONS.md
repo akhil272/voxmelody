@@ -85,3 +85,18 @@ Mix is its own page: one voice and one music recording from the Library, with mu
 
 ## D028: Ducking and loudness (2026-11-25)
 Music sits 12 to 28 dB below speech (20 by default) and rises 10 dB in pauses longer than about a second. The level depends on measured loudness, so quiet recordings need no adjustment. Supersedes the missing limiter in D021: a lookahead limiter takes mixes and music tracks to −14 LUFS with peaks at −1 dBFS, with at most 12 dB of reduction; extremely peaky audio lands lower.
+
+## D029: Simple by default, Advanced on request (2026-11-25)
+Models has its own page. Simple shows the recommended voice and music model, plus any already downloaded. One Advanced switch, shared by Models and both studios, shows the full catalog with details and filters, and every engine control. Hidden controls never affect a result.
+
+## D030: Model catalog (2026-11-25)
+Supersedes D016. The catalog is curated: each model runs on an engine we ship and was tested. Details live in `models.json`; the first model of a kind is recommended, and the original pack ids stay so existing downloads keep working. Four voice models beyond Kokoro and three music models beyond Turbo are listed. Kokoro int8 is left out (D002).
+
+## D031: Shared model files (2026-11-25)
+Music models share files. Identical files are hard-linked from installed models, so they are downloaded and stored once; drives without links download them again. Removing a model never affects another.
+
+## D032: Use restrictions (2026-11-25)
+Models with restricted licences, currently Supertonic 3 (OpenRAIL-M), may be listed with a visible notice and a link, by the owner's decision. Non-commercial models stay out. People download the weights from Hugging Face; the app never redistributes them.
+
+## D033: Preferences (2026-11-25)
+`preferences.json` in the app data folder keeps Advanced, chosen models and favourites. A damaged file resets them.

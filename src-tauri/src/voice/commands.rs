@@ -3,23 +3,41 @@ use tauri::{AppHandle, Emitter, Manager, State};
 
 use super::engine::{Request, VoiceEngine};
 use super::error::VoiceError;
-use super::voices::{self, VOICES, Voice};
+use super::voices::{self, Voice};
 use crate::library::commands as library;
 use crate::library::store::Kind;
 use crate::models::manager::ModelManager;
+use crate::models::manifest::{self, PackKind};
 use crate::takes::{Take, Takes};
 
 const PROGRESS_EVENT: &str = "voice://progress";
 const MAX_CHARACTERS: usize = 10_000;
 const PREVIEW_CHARACTERS: usize = 160;
+const SPEED: std::ops::RangeInclusive<f32> = 0.5..=1.5;
+const PAUSE: std::ops::RangeInclusive<f32> = 1.0..=5.0;
+const MAX_THREADS: u32 = 64;
+const MAX_STEPS: u32 = 32;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SpeechRequest {
   text: String,
+  model: String,
   voice: String,
   speed: f32,
   preview: bool,
+  /// Length of the pauses between sentences, where 1 is normal.
+  pause: f32,
+  /// Zero lets the engine choose.
+  threads: u32,
+  /// Zero uses the model's own number.
+  steps: u32,
+}
+
+impl SpeechRequest {
+  fn is_valid(&self) -> bool {
+    SPEED.contains(&self.speed) && PAUSE.contains(&self.pause) && self.threads <= MAX_THREADS && self.steps <= MAX_STEPS
+  }
 }
 
 pub fn setup(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
@@ -41,8 +59,8 @@ fn preview_text(text: &str) -> &str {
 }
 
 #[tauri::command]
-pub fn list_voices() -> &'static [Voice] {
-  &VOICES
+pub fn list_voices() -> Vec<Voice> {
+  manifest::packs().iter().flat_map(|pack| voices::of(pack)).collect()
 }
 
 #[tauri::command]
@@ -53,16 +71,30 @@ pub async fn speak(
   takes: State<'_, Takes>,
   request: SpeechRequest,
 ) -> Result<Take, VoiceError> {
-  let voice = voices::find(&request.voice).ok_or(VoiceError::Request)?;
+  let model = manifest::find(&request.model).ok_or(VoiceError::Request)?;
+  let voice = voices::find(model, &request.voice).filter(|_| request.is_valid()).ok_or(VoiceError::Request)?;
+  let engine_model = model.voice.as_ref().ok_or(VoiceError::Request)?;
   if request.text.chars().count() > MAX_CHARACTERS {
     return Err(VoiceError::TooLong);
   }
   let preview = request.preview;
   let text = if preview { preview_text(&request.text) } else { request.text.as_str() };
   let (id, output) = takes.reserve();
-  let locate = async { models.installed_dir("voice").await.ok_or(VoiceError::NotInstalled) };
-  let request =
-    Request { text, language: voice.language, speaker: voice.speaker, speed: request.speed, output: &output };
+  let locate = async {
+    models.installed(&model.id, PackKind::Voice).await.map(|(dir, _)| dir).ok_or(VoiceError::NotInstalled)
+  };
+  let request = Request {
+    family: &engine_model.family,
+    model: &engine_model.file,
+    text,
+    language: &voice.language,
+    speaker: voice.speaker,
+    speed: request.speed,
+    pause: request.pause,
+    threads: request.threads,
+    steps: request.steps,
+    output: &output,
+  };
   let report = |value: f32| {
     let _ = app.emit(PROGRESS_EVENT, value);
   };

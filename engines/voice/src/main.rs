@@ -15,9 +15,17 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct Request {
   pub text: String,
-  pub language: engine::Language,
+  pub family: engine::Family,
+  /// File name inside the working directory.
+  pub model: String,
+  pub language: String,
   pub speaker: i32,
   pub speed: f32,
+  /// Length of pauses, where 1 is normal.
+  pub pause: f32,
+  /// Zero chooses automatically.
+  pub threads: usize,
+  pub steps: i32,
   pub output: PathBuf,
 }
 

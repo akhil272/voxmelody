@@ -41,6 +41,8 @@ Voice plus ducked music, normalised to about −14 LUFS, stayed fully intelligib
 | ACE-Step 1.5 | MIT | MIT | Yes |
 | acestep.cpp | MIT | n/a | Yes |
 | sherpa-onnx 1.x | Apache-2.0, bundles GPL-3.0 espeak-ng | n/a | Yes, as a separate process with source offer |
+| Kitten TTS 0.8 (Nano, Micro, Mini) | Apache-2.0 | Apache-2.0 | Yes |
+| Supertonic 3 | MIT | OpenRAIL-M (use restrictions, including disclosing machine-made content) | Yes, labelled |
 | Qwen3-TTS 0.6B | Apache-2.0 | Apache-2.0 | Later (voice cloning, not tested) |
 | Piper voices | MIT or GPL-3.0 | Varies by voice | Only voices vetted one by one |
 | MusicGen | MIT | **CC-BY-NC-4.0** | **No** |
@@ -97,6 +99,29 @@ Same test machine. Times are the engine process alone, including model loading; 
 - An older sample that already loses words when dry gave the same 49 words in five mixes, apart from one word swap ("and" or "in").
 - In the app: empty page, long titles, create, play, Library entry, a source moved away while the page was open, and deleting the mix shown on the page. A 13 s voice mixed in 3 s in a debug build.
 - Not checked: Export through the dialog for a mix (shared code), mixes of the longest scripts, and listening by a person.
+
+## Model catalog (2026-11-25)
+
+Release dates and authors come from the model cards; ACE-Step and Kitten dates are when the weights appeared on Hugging Face.
+
+| Voice model | Download | Time for about 13 s of English | Transcription |
+| --- | --- | --- | --- |
+| Kitten Nano, Micro, Mini | 61, 45, 82 MB | 1.3, 4.4, 8.1 s | 24 samples: every date, number and time right; one price heard wrongly (Mini, "Bruno") |
+| Supertonic 3 | 145 MB | 1.5 s | Reads "$49.99" wrongly, so English prices are spelled out first; then 10 of 11 prices and 10 of 11 dates were right |
+
+- Supertonic was run once in each of 31 languages. Latvian, Estonian, Lithuanian, Vietnamese and Hungarian had the most differences; Whisper small is also weak there, so these need native listeners.
+- Extra quality steps did not improve Supertonic. Pauses affect Kokoro and Kitten only.
+
+| Music model (GTX 1060) | 32 s track | Peak VRAM (whole system) |
+| --- | --- | --- |
+| SFT, 50 steps | 58 s | 2.9 GB |
+| SFT, 30 steps, prompt strength 4 | 63 s | 2.9 GB |
+| Turbo HQ | 31 s | 4.2 GB |
+| XL Turbo | 40 s; 242 s track 213 s | 4.2; 4.7 GB |
+
+- The same seed gave identical audio twice and another seed did not. Creativity and steps changed the result.
+- In the app: simple and advanced pages, filters, sorting, search, favourites, download, a Resume that linked shared files instead of fetching them, generating with three voice models and SFT, an invalid seed, switching back to simple, and removing one model without harming others.
+- Not checked: Turbo HQ and XL on the CPU, the memory recommendations for them, musical quality, and moving shared files between two real drives (unit test only).
 
 ## Known issues to handle
 
