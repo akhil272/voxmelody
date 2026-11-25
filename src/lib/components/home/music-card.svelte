@@ -32,6 +32,6 @@
     {#if models.installed("music").length > 1}
       <div class="w-44 shrink-0"><ModelSelect kind="music" /></div>
     {/if}
-    <Button variant="secondary" class="flex-1" disabled={!music.ready} onclick={generate}>{copy.generateMusic}</Button>
+    <Button variant="secondary" class="flex-1" disabled={!music.described} onclick={generate}>{copy.generateMusic}</Button>
   </div>
 </StudioCard>

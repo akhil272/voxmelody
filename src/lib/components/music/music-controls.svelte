@@ -1,6 +1,7 @@
 <script lang="ts">
   import MusicAdvanced from "#lib/components/music/music-advanced.svelte";
   import MusicActions from "#lib/components/music/music-actions.svelte";
+  import SongControls from "#lib/components/music/song-controls.svelte";
   import Field from "#lib/components/shared/field.svelte";
   import ModelField from "#lib/components/shared/model-field.svelte";
   import OptionSelect from "#lib/components/shared/option-select.svelte";
@@ -19,9 +20,13 @@
 <Card class="max-h-full w-72 shrink-0 gap-5 self-start">
   <div class="-mx-4 flex min-h-0 flex-col gap-5 overflow-y-auto px-4 [scrollbar-width:thin]">
     <ModelField kind="music" disabled={music.generating} />
-    <Field label={copy.length} hint={formatTime(music.seconds)}>
-      <Slider bind:value={music.seconds} {...LENGTH} label={copy.length} tone="music" disabled={music.generating} />
-    </Field>
+    {#if music.isSong}
+      <SongControls />
+    {:else}
+      <Field label={copy.length} hint={formatTime(music.seconds)}>
+        <Slider bind:value={music.seconds} {...LENGTH} label={copy.length} tone="music" disabled={music.generating} />
+      </Field>
+    {/if}
     <Field label={copy.tempo} hint={custom ? copy.bpm(music.bpm) : undefined}>
       <OptionSelect
         label={copy.tempo}

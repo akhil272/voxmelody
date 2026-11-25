@@ -1,4 +1,7 @@
 export type MusicError = "notInstalled" | "model" | "output" | "request" | "engine" | "cancelled";
+export type MusicMode = "instrumental" | "song";
+export type LengthMode = "auto" | "custom";
+export type SongSection = "verse" | "chorus" | "bridge";
 export type TempoMode = "auto" | "custom";
 
 export type Processor = "auto" | "cpu";
@@ -18,5 +21,6 @@ export interface MusicRequest {
   seconds: number;
   bpm: number;
   key: string;
+  song: { lyrics: string; language: string } | null;
   options: MusicOptions;
 }

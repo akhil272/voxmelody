@@ -10,5 +10,6 @@ interface RecordingUi {
 
 export const RECORDING_UI: Record<RecordingKind, RecordingUi> = {
   ...PACK_UI,
+  song: { title: COPY.music.modes.song, tone: "music", button: "secondary" },
   mix: { title: COPY.mix.title, tone: "voice", button: "default" },
 };
