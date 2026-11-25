@@ -1,4 +1,15 @@
 export { COPY } from "./constants/copy.js";
+export {
+  AUTO_BPM,
+  AUTO_KEY,
+  BPM,
+  DEFAULT_BPM,
+  DEFAULT_LENGTH,
+  LENGTH,
+  MAX_PROMPT_LENGTH,
+  MUSIC_KEYS,
+  TEMPO_MODES,
+} from "./constants/music.js";
 export { PACK_IDS, PACK_UI } from "./constants/packs.js";
 export { DEFAULT_SPEED, MAX_SCRIPT_LENGTH, SPEED, VOICE_LANGUAGES } from "./constants/voice.js";
 export { FOOTER_NAV, MAIN_NAV, ROUTES } from "./constants/navigation.js";

@@ -1,4 +1,8 @@
+mod audio;
+mod engine;
 mod models;
+mod music;
+mod takes;
 mod voice;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -10,6 +14,8 @@ pub fn run() {
         app.handle().plugin(tauri_plugin_log::Builder::default().level(log::LevelFilter::Info).build())?;
       }
       models::commands::setup(app.handle())?;
+      takes::setup(app.handle())?;
+      music::commands::setup(app.handle())?;
       voice::commands::setup(app.handle())
     })
     .invoke_handler(tauri::generate_handler![
@@ -24,8 +30,11 @@ pub fn run() {
       voice::commands::list_voices,
       voice::commands::speak,
       voice::commands::cancel_speech,
-      voice::commands::read_take,
-      voice::commands::export_take,
+      music::commands::compose,
+      music::commands::cancel_music,
+      music::commands::graphics_name,
+      takes::read_take,
+      takes::export_take,
     ])
     .run(tauri::generate_context!())
     .expect("error while building tauri application");

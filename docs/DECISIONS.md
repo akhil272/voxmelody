@@ -58,3 +58,18 @@ Removing or moving models suspends the voice engine first and holds it stopped, 
 
 ## D019: Takes are temporary until the Library exists (2026-11-25)
 Only the newest preview and newest recording are kept in the cache; Export saves a WAV. Phase 5 makes recordings permanent. Compressed export formats are undecided.
+
+## D020: Own music engine process (2026-11-25)
+`engines/music` is a small C++ program built on acestep.cpp `973517b`, fetched by CMake at build time. It reads one JSON line on stdin, makes one track and exits, so all memory returns to the computer. Windows loads Vulkan and the best CPU variant at runtime, so PCs without Vulkan still work and no Visual C++ runtime is needed. Backends load before the engine enters the models folder, so libraries are never loaded from it. Building on Windows needs Visual Studio with CMake and the Vulkan SDK.
+
+## D021: Exact music length (2026-11-25)
+The engine composes past the requested length, retries up to three times if the music stops early, and renders only what is needed plus two seconds. The app trims silence, cuts, fades and normalises. A track with a silent ending is composed once more, then repeated with a crossfade as a last resort. Loudness targets −14 LUFS but peaks never exceed −1 dBFS; there is no limiter until Phase 6, so dynamic tracks land lower.
+
+## D022: Music device choice (2026-11-25)
+Music uses the dedicated GPU with the most memory if it has at least 3.5 GB, otherwise the CPU. Integrated GPUs are skipped until tested. If the GPU run fails, the same track restarts on the CPU, which is then used until the app restarts. The VAE tile is 256 frames: faster, with peak graphics use under 2 GB.
+
+## D023: Music is instrumental for now (2026-11-25)
+Lyrics and vocals are outside Phase 4. Length is 10 to 240 seconds; tempo and key default to Auto.
+
+## D024: Shared takes (2026-11-25)
+Extends D019. Voice and music share one temporary take store and one read and export path. Removing a model suspends only its own engine; moving models suspends both.

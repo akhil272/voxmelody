@@ -6,6 +6,7 @@ import type { LocationStatus, ModelError, PackId, PackStatus, SystemInfo } from 
 class ModelStore {
   packs = $state<Partial<Record<PackId, PackStatus>>>({});
   system = $state<SystemInfo | null>(null);
+  graphics = $state<string | null>(null);
   location = $state<LocationStatus | null>(null);
   locationError = $state<ModelError | null>(null);
 
@@ -21,6 +22,10 @@ class ModelStore {
 
   async refreshSystem() {
     this.system = await api.getSystemInfo();
+  }
+
+  async loadGraphics() {
+    if (isTauri()) this.graphics = await api.getGraphicsName();
   }
 
   download(id: PackId) {

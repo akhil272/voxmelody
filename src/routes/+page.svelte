@@ -1,12 +1,10 @@
 <script lang="ts">
   import ArrowRightIcon from "@lucide/svelte/icons/arrow-right";
   import InfoIcon from "@lucide/svelte/icons/info";
-  import MusicIcon from "@lucide/svelte/icons/music";
   import HeroWave from "#lib/components/brand/hero-wave.svelte";
   import Wordmark from "#lib/components/brand/wordmark.svelte";
-  import StudioCard from "#lib/components/home/studio-card.svelte";
+  import MusicCard from "#lib/components/home/music-card.svelte";
   import VoiceCard from "#lib/components/home/voice-card.svelte";
-  import ModelSelect from "#lib/components/shared/model-select.svelte";
   import { Button } from "#lib/components/ui/button/index.js";
   import { COPY, ROUTES } from "#lib/constants.js";
 
@@ -31,11 +29,7 @@
 
   <div class="grid grid-cols-2 gap-4">
     <VoiceCard />
-
-    <StudioCard title={copy.musicTitle} description={copy.musicDescription} icon={MusicIcon} tone="music">
-      <ModelSelect label={copy.musicModel} model={copy.musicEngine} icon={MusicIcon} disabled />
-      <Button variant="secondary" class="mt-auto w-full" disabled>{copy.generateMusic}</Button>
-    </StudioCard>
+    <MusicCard />
   </div>
 
   <aside class="flex items-center justify-between rounded-lg border bg-muted px-4 py-2.5 text-xs">

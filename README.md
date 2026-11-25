@@ -6,7 +6,7 @@ VoxMelody is a free, open-source desktop app for Windows and macOS. It is in ear
 
 ## Develop
 
-Requires Node 22, pnpm, Rust, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/).
+Requires Node 22, pnpm, Rust, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/). The music engine also needs CMake and Ninja; on Windows, use Visual Studio with the C++ workload and set `VULKAN_SDK`.
 
 ```sh
 pnpm install

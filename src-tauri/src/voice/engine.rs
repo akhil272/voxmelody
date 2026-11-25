@@ -1,19 +1,16 @@
 use std::path::{Path, PathBuf};
-use std::process::Stdio;
 use std::sync::Arc;
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, Lines};
-use tokio::process::{Child, ChildStdin, ChildStdout, Command};
+use tokio::process::{Child, ChildStdin, ChildStdout};
 use tokio::sync::{Mutex, MutexGuard, watch};
 
 use super::error::VoiceError;
 
 /// Frees the model's memory after a quiet period.
 const IDLE_TIMEOUT: Duration = Duration::from_secs(120);
-#[cfg(windows)]
-const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -145,11 +142,7 @@ impl VoiceEngine {
   }
 
   fn spawn(&self, dir: &Path) -> Result<Process, VoiceError> {
-    let mut command = Command::new(&self.program);
-    command.current_dir(dir).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::null()).kill_on_drop(true);
-    #[cfg(windows)]
-    command.creation_flags(CREATE_NO_WINDOW);
-    let mut child = command.spawn()?;
+    let mut child = crate::engine::command(&self.program).current_dir(dir).spawn()?;
     let stdin = child.stdin.take().ok_or(VoiceError::Engine)?;
     let stdout = child.stdout.take().ok_or(VoiceError::Engine)?;
     Ok(Process { child, stdin, stdout: BufReader::new(stdout).lines(), dir: dir.into() })

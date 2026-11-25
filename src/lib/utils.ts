@@ -3,6 +3,7 @@ export { closeWindow, minimizeWindow, toggleMaximizeWindow } from "./utils/windo
 export { formatBytes, formatMemory, toPercent } from "./utils/format.js";
 export { hasEnoughMemory } from "./utils/memory.js";
 export { toModelError } from "./utils/model-error.js";
+export { toMusicError } from "./utils/music-error.js";
 export { countCharacters, toFileName } from "./utils/text.js";
 export { formatTime } from "./utils/time.js";
 export { toVoiceError } from "./utils/voice-error.js";
