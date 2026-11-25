@@ -5,6 +5,8 @@ export { hasEnoughMemory } from "./utils/memory.js";
 export { toModelError } from "./utils/model-error.js";
 export { toAudioUrl } from "./utils/audio.js";
 export { toLibraryError } from "./utils/library-error.js";
+export { toMixError } from "./utils/mix-error.js";
+export { findRecording, toRecordingOptions } from "./utils/recordings.js";
 export { toMusicError } from "./utils/music-error.js";
 export { countCharacters, toFileName } from "./utils/text.js";
 export { formatDate, formatTime } from "./utils/time.js";

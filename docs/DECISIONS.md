@@ -79,3 +79,9 @@ Supersedes D019 and D024 for finished recordings. Every generated voice and musi
 
 ## D026: Identifying recordings (2026-11-25)
 A recording is recognised by its size plus a hash of its start and middle. Size alone fails because tracks of equal length have equal size. Relink only accepts the same recording and also finds others moved beside it. Delete never removes a file that is not the recording. Rename changes the title only; file names stay.
+
+## D027: Mix (2026-11-25)
+Mix is its own page: one voice and one music recording from the Library, with music volume, intro and outro. The voice sets the length; longer music is cut and shorter music repeats with a crossfade, without its faded ending. Mixes are saved to the Library as a third kind with the voice's title. Mixing runs inside the app in plain Rust: no engine process, model or new dependency.
+
+## D028: Ducking and loudness (2026-11-25)
+Music sits 12 to 28 dB below speech (20 by default) and rises 10 dB in pauses longer than about a second. The level depends on measured loudness, so quiet recordings need no adjustment. Supersedes the missing limiter in D021: a lookahead limiter takes mixes and music tracks to −14 LUFS with peaks at −1 dBFS, with at most 12 dB of reduction; extremely peaky audio lands lower.

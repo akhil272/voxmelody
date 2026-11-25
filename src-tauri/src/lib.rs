@@ -1,6 +1,7 @@
 mod audio;
 mod engine;
 mod library;
+mod mix;
 mod models;
 mod music;
 mod takes;
@@ -35,6 +36,7 @@ pub fn run() {
       music::commands::compose,
       music::commands::cancel_music,
       music::commands::graphics_name,
+      mix::commands::create_mix,
       takes::read_take,
       library::commands::list_recordings,
       library::commands::read_recording,

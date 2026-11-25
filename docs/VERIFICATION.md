@@ -1,4 +1,4 @@
-# Phase 0: Verification
+# Verification
 
 Date: 2026-11-25. **Verdict: GO.**
 
@@ -48,14 +48,14 @@ Voice plus ducked music, normalised to about −14 LUFS, stayed fully intelligib
 - The mockup's "Aria (MusicGen)" option must become ACE-Step.
 - The Piper lessac voice used for speed testing has its own dataset licence terms, so it is not approved for shipping.
 
-## Phase 2 additions (2026-11-25)
+## Model manager (2026-11-25)
 
 - Full CPU-only music pipeline, 60 s track: LM 14 s plus synth 114 s; peak memory 2.75 GB (LM) and 3.61 GB (synth). On the GTX 1060, synth peaked at 1.36 GB of RAM.
 - Voice pack trimmed from 378 to 30 files (367 MB) covering English, Spanish, French, Hindi, Italian and Portuguese. English, Spanish and French ran. Spanish phoneme tokens matched the full set exactly; audio differs slightly on every run even with identical input. Chinese and Japanese files are not included.
 - In the app: download, pause, resume, forced kill then resume, proxy failure, both packs installed from Hugging Face, and a cross-drive move. Voice and music then generated from those files with the engine tools.
 - Cross-drive move of 3.6 GB took 456 s in an unoptimised debug build; release speed is not measured.
 
-## Phase 3 additions (2026-11-25)
+## Voice Studio (2026-11-25)
 
 - The stock sherpa-onnx command-line tool garbles accents, fails in folders with non-ASCII names, and reads a script such as "--help" as an option. Our own engine process passes all three.
 - 41 voices in 7 language options ran. English, Spanish, French, Italian, Portuguese and Hindi were transcribed back; differences were spelling or transcriber errors, confirmed for Spanish and for a 111-word unpunctuated sentence (111 of 111 words).
@@ -64,7 +64,7 @@ Voice plus ducked music, normalised to about −14 LUFS, stayed fully intelligib
 - The engine imports no networking library and had no open sockets while running.
 - In the app: preview, generate, play, seek, language change, export, cancel (0.1 s), and removing the voice during generation.
 
-## Phase 4 additions (2026-11-25)
+## Music Studio (2026-11-25)
 
 Same test machine. Times are the engine process alone, including model loading; audio includes two spare seconds.
 
@@ -84,18 +84,26 @@ Same test machine. Times are the engine process alone, including model loading; 
 - Requested 84 BPM; four GPU tracks measured about 86, one of them as double time. The key was passed to the model but not measured.
 - The engine and its libraries import no networking library and no Visual C++ runtime.
 
-## Phase 5 additions (2026-11-25)
+## Library (2026-11-25)
 
 - In the app: automatic saving, live update while the Library is open, playback, rename, cancel rename, delete, restart, files moved away, files put back, and deleting a missing recording (the moved file is kept).
 - Native dialogs: Export wrote a byte-identical file; Relink refused another WAV and accepted the renamed original in a folder with a non-ASCII name. Exporting a recording onto itself is guarded in code but was not driven through the dialog.
 - Unit tests cover a damaged index, an unusable Music folder, two windows saving at once, and same-sized tracks.
 
+## Mix (2026-11-25)
+
+- Nine mixes of real recordings measured by ffmpeg: −14.0 LUFS (one −14.1) with true peaks of −0.9 dBTP or lower. A dry voice at −25.4 LUFS and a fresh music track also reached −14.0.
+- An app-made voice with a date, price and number transcribed identically dry, at 50% and at 100% music volume (34 of 34 words).
+- An older sample that already loses words when dry gave the same 49 words in five mixes, apart from one word swap ("and" or "in").
+- In the app: empty page, long titles, create, play, Library entry, a source moved away while the page was open, and deleting the mix shown on the page. A 13 s voice mixed in 3 s in a debug build.
+- Not checked: Export through the dialog for a mix (shared code), mixes of the longest scripts, and listening by a person.
+
 ## Known issues to handle
 
-1. Solved in Phase 4: exact length without a silent ending (D021).
-2. Solved in Phase 4: tracks are normalised from unclipped samples.
-3. Solved in Phase 4: tile 256 cut VAE decode of a 92 s track from 32 s to 21 s.
-4. Solved in Phase 3: common English abbreviations are expanded before speech.
+1. Solved: exact length without a silent ending (D021).
+2. Solved: tracks are normalised from unclipped samples.
+3. Solved: tile 256 cut VAE decode of a 92 s track from 32 s to 21 s.
+4. Solved: common English abbreviations are expanded before speech.
 5. acestep.cpp has no release binaries; `pnpm engines` builds it, and CI must do the same in Phase 8.
 
 ## Not verified

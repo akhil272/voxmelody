@@ -10,7 +10,7 @@
   import { Badge } from "#lib/components/ui/badge/index.js";
   import { Button } from "#lib/components/ui/button/index.js";
   import { Card } from "#lib/components/ui/card/index.js";
-  import { COPY, PACK_UI } from "#lib/constants.js";
+  import { COPY, RECORDING_UI } from "#lib/constants.js";
   import { library } from "#lib/library/store.svelte.js";
   import type { Recording } from "#lib/library/types.js";
   import { formatDate, formatTime } from "#lib/utils.js";
@@ -22,7 +22,7 @@
 
   const copy = COPY.library;
   const id = $derived(recording.id);
-  const ui = $derived(PACK_UI[recording.kind]);
+  const ui = $derived(RECORDING_UI[recording.kind]);
   const url = $derived(library.playing?.id === id ? library.playing.value : null);
   const error = $derived(library.error?.id === id ? library.error.value : null);
   const details = $derived(

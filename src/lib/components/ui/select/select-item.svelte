@@ -31,11 +31,11 @@
 				<CheckIcon class="pointer-events-none" />
 			{/if}
 		</span>
-		<span class="flex flex-1 gap-2 shrink-0 whitespace-nowrap">
+		<span class="flex min-w-0 flex-1 gap-2 whitespace-nowrap">
 			{#if childrenProp}
 				{@render childrenProp({ selected, highlighted })}
 			{:else}
-				{label || value}
+				<span class="truncate">{label || value}</span>
 			{/if}
 		</span>
 	{/snippet}

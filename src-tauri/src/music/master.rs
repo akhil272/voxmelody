@@ -1,23 +1,16 @@
 //! Turns raw engine audio into a finished track of the exact length.
 
-use crate::audio::{CHANNELS, loudness};
+use crate::audio::{CHANNELS, frames, limiter, peak, shape};
 
-const TARGET_LUFS: f64 = -14.0;
-/// Leaves 1 dB of headroom for players and encoders.
-const CEILING: f32 = 0.891;
 /// 50 dB below the loudest sample counts as silence.
 const SILENCE_RATIO: f32 = 0.003;
 const WINDOW_SECONDS: f32 = 0.05;
 const FADE_IN_SECONDS: f32 = 0.01;
 const FADE_OUT_SECONDS: f32 = 2.0;
-const CROSSFADE_SECONDS: f32 = 1.0;
 
-fn frames(seconds: f32, rate: u32) -> usize {
-  (seconds * rate as f32) as usize
-}
-
-fn peak(samples: &[f32]) -> f32 {
-  samples.iter().fold(0.0, |peak, sample| peak.max(sample.abs()))
+/// Frames that fade at the end of a track; at most an eighth of it.
+pub fn fade_out(length: usize, rate: u32) -> usize {
+  frames(FADE_OUT_SECONDS, rate).min(length / CHANNELS / 8)
 }
 
 /// The part between the first and last sound.
@@ -39,43 +32,6 @@ pub fn is_long_enough(raw: &[f32], rate: u32, seconds: u32) -> bool {
   trim_silence(raw, rate).len() >= seconds as usize * rate as usize * CHANNELS
 }
 
-/// Repeats the track with equal-power crossfades until it is long enough.
-fn extend(samples: &[f32], rate: u32, length: usize) -> Vec<f32> {
-  let mut out = samples.to_vec();
-  let overlap = frames(CROSSFADE_SECONDS, rate).min(samples.len() / CHANNELS / 4);
-  while out.len() < length {
-    let start = out.len() - overlap * CHANNELS;
-    for frame in 0..overlap {
-      let angle = std::f32::consts::FRAC_PI_2 * frame as f32 / overlap as f32;
-      for index in frame * CHANNELS..(frame + 1) * CHANNELS {
-        out[start + index] = out[start + index] * angle.cos() + samples[index] * angle.sin();
-      }
-    }
-    out.extend_from_slice(&samples[overlap * CHANNELS..]);
-  }
-  out
-}
-
-fn fade(samples: &mut [f32], rate: u32) {
-  let total = samples.len() / CHANNELS;
-  let fade_in = frames(FADE_IN_SECONDS, rate).max(1);
-  let fade_out = frames(FADE_OUT_SECONDS, rate).min(total / 8).max(1);
-  for (index, frame) in samples.as_chunks_mut::<CHANNELS>().0.iter_mut().enumerate() {
-    let start = (index as f32 / fade_in as f32).min(1.0);
-    let end = ((total - 1 - index) as f32 / fade_out as f32).min(1.0);
-    // A sine curve keeps the ending audible for most of the fade.
-    let gain = start * (end * std::f32::consts::FRAC_PI_2).sin();
-    frame.iter_mut().for_each(|sample| *sample *= gain);
-  }
-}
-
-fn normalise(samples: &mut [f32], rate: u32) {
-  let Some(current) = loudness::measure(samples, rate) else { return };
-  let wanted = 10f64.powf((TARGET_LUFS - current) / 20.0) as f32;
-  let gain = wanted.min(CEILING / peak(samples).max(f32::MIN_POSITIVE));
-  samples.iter_mut().for_each(|sample| *sample *= gain);
-}
-
 /// `None` when the engine produced no sound.
 pub fn finish(raw: &[f32], rate: u32, seconds: u32) -> Option<Vec<f32>> {
   let sound = trim_silence(raw, rate);
@@ -83,16 +39,17 @@ pub fn finish(raw: &[f32], rate: u32, seconds: u32) -> Option<Vec<f32>> {
     return None;
   }
   let length = seconds as usize * rate as usize * CHANNELS;
-  let mut track = extend(sound, rate, length);
-  track.truncate(length);
-  fade(&mut track, rate);
-  normalise(&mut track, rate);
+  let mut track = shape::extend(sound, rate, length);
+  shape::fade(&mut track, frames(FADE_IN_SECONDS, rate), fade_out(length, rate));
+  limiter::normalise(&mut track, rate);
   Some(track)
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::audio::limiter::{CEILING, TARGET_LUFS};
+  use crate::audio::loudness;
 
   const RATE: u32 = 48_000;
 

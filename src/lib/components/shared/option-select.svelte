@@ -15,8 +15,10 @@
 </script>
 
 <Select type="single" {value} {disabled} items={options} onValueChange={onchange}>
-  <SelectTrigger class="w-full" aria-label={label}>{selected?.label}</SelectTrigger>
-  <SelectContent>
+  <SelectTrigger class="w-full" aria-label={label}>
+    <span class="min-w-0 truncate">{selected?.label}</span>
+  </SelectTrigger>
+  <SelectContent class="max-w-(--bits-select-anchor-width)">
     {#each options as option (option.value)}
       <SelectItem value={option.value} label={option.label} />
     {/each}
