@@ -3,6 +3,8 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 
+use crate::models::manifest::PackKind;
+
 const FILE: &str = "preferences.json";
 const TEMPORARY: &str = "preferences.part";
 
@@ -34,6 +36,15 @@ fn store(dir: &Path, preferences: &Preferences) -> std::io::Result<()> {
   std::fs::create_dir_all(dir)?;
   std::fs::write(dir.join(TEMPORARY), serde_json::to_vec(preferences)?)?;
   std::fs::rename(dir.join(TEMPORARY), dir.join(FILE))
+}
+
+/// The chosen model of one kind; empty when none was chosen.
+pub fn model(app: &AppHandle, kind: PackKind) -> String {
+  let preferences = dir(app).map(|dir| load(&dir)).unwrap_or_default();
+  match kind {
+    PackKind::Voice => preferences.voice_model,
+    PackKind::Music => preferences.music_model,
+  }
 }
 
 #[tauri::command]

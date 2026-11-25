@@ -38,7 +38,20 @@ class VoiceStore {
     await api.onProgress((value) => {
       if (this.activity !== "idle") this.progress = value;
     });
+    await this.refresh();
+  }
+
+  async refresh() {
     this.voices = await api.listVoices();
+  }
+
+  /** Selects a cloned voice and its model. False when the model is not installed. */
+  useClone(id: string) {
+    const model = models.cloning;
+    if (!model || !models.isInstalled(model.id)) return false;
+    preferences.setModel("voice", model.id);
+    this.setVoice(id);
+    return true;
   }
 
   setVoice(id: string) {

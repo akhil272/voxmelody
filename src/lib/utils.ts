@@ -3,6 +3,9 @@ export { closeWindow, minimizeWindow, toggleMaximizeWindow } from "./utils/windo
 export { formatBytes, formatMemory, toPercent } from "./utils/format.js";
 export { hasEnoughMemory } from "./utils/memory.js";
 export { toModelError } from "./utils/model-error.js";
+export { toCloneError } from "./utils/clone-error.js";
+export { Recorder } from "./utils/recorder.js";
+export { decodeSample } from "./utils/sample.js";
 export { toAudioUrl } from "./utils/audio.js";
 export { toLibraryError } from "./utils/library-error.js";
 export { toMixError } from "./utils/mix-error.js";

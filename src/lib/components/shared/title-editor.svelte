@@ -2,7 +2,14 @@
   import { Input } from "#lib/components/ui/input/index.js";
   import { COPY, MAX_TITLE_LENGTH } from "#lib/constants.js";
 
-  let { title, onsave, oncancel }: { title: string; onsave: (title: string) => void; oncancel: () => void } = $props();
+  interface Props {
+    title: string;
+    onsave: (title: string) => void;
+    oncancel: () => void;
+    maxlength?: number;
+  }
+
+  let { title, onsave, oncancel, maxlength = MAX_TITLE_LENGTH }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   let draft = $state(title);
@@ -32,7 +39,7 @@
 >
   <Input
     aria-label={COPY.library.name}
-    maxlength={MAX_TITLE_LENGTH}
+    {maxlength}
     onblur={() => finish(true)}
     onkeydown={(event: KeyboardEvent) => event.key === "Escape" && finish(false)}
     bind:value={draft}

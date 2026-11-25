@@ -4,10 +4,11 @@ use tauri::{AppHandle, Emitter, Manager, State};
 use super::engine::{Request, VoiceEngine};
 use super::error::VoiceError;
 use super::voices::{self, Voice};
+use crate::clones::store::Clones;
 use crate::library::commands as library;
 use crate::library::store::Kind;
 use crate::models::manager::ModelManager;
-use crate::models::manifest::{self, PackKind};
+use crate::models::manifest::{self, Pack, PackKind};
 use crate::takes::{Take, Takes};
 
 const PROGRESS_EVENT: &str = "voice://progress";
@@ -21,17 +22,17 @@ const MAX_STEPS: u32 = 32;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SpeechRequest {
-  text: String,
-  model: String,
-  voice: String,
-  speed: f32,
-  preview: bool,
+  pub text: String,
+  pub model: String,
+  pub voice: String,
+  pub speed: f32,
+  pub preview: bool,
   /// Length of the pauses between sentences, where 1 is normal.
-  pause: f32,
+  pub pause: f32,
   /// Zero lets the engine choose.
-  threads: u32,
+  pub threads: u32,
   /// Zero uses the model's own number.
-  steps: u32,
+  pub steps: u32,
 }
 
 impl SpeechRequest {
@@ -59,8 +60,12 @@ fn preview_text(text: &str) -> &str {
 }
 
 #[tauri::command]
-pub fn list_voices() -> Vec<Voice> {
-  manifest::packs().iter().flat_map(|pack| voices::of(pack)).collect()
+pub fn list_voices(clones: State<'_, Clones>) -> Vec<Voice> {
+  let cloned = clones.list().unwrap_or_default();
+  let of = |pack: &'static Pack| {
+    if voices::can_clone(pack) { cloned.iter().map(|clone| clone.voice(pack)).collect() } else { voices::of(pack) }
+  };
+  manifest::packs().iter().flat_map(of).collect()
 }
 
 #[tauri::command]
@@ -69,10 +74,19 @@ pub async fn speak(
   engine: State<'_, VoiceEngine>,
   models: State<'_, ModelManager>,
   takes: State<'_, Takes>,
+  clones: State<'_, Clones>,
   request: SpeechRequest,
 ) -> Result<Take, VoiceError> {
   let model = manifest::find(&request.model).ok_or(VoiceError::Request)?;
-  let voice = voices::find(model, &request.voice).filter(|_| request.is_valid()).ok_or(VoiceError::Request)?;
+  if !request.is_valid() {
+    return Err(VoiceError::Request);
+  }
+  let (voice, reference) = if voices::can_clone(model) {
+    let clone = clones.find(&request.voice).map_err(|_| VoiceError::Reference)?;
+    (clone.voice(model), Some(clones.path(&clone)))
+  } else {
+    (voices::find(model, &request.voice).ok_or(VoiceError::Request)?, None)
+  };
   let engine_model = model.voice.as_ref().ok_or(VoiceError::Request)?;
   if request.text.chars().count() > MAX_CHARACTERS {
     return Err(VoiceError::TooLong);
@@ -93,6 +107,7 @@ pub async fn speak(
     pause: request.pause,
     threads: request.threads,
     steps: request.steps,
+    reference: reference.as_deref(),
     output: &output,
   };
   let report = |value: f32| {
@@ -103,10 +118,20 @@ pub async fn speak(
       takes.keep(id);
       Ok(Take { id, duration_ms: speech.duration_ms, peaks: speech.peaks })
     }
-    Ok(speech) => library::keep(&app, Kind::Voice, text, output.clone(), speech.duration_ms, speech.peaks).await.map_err(|_| {
-      takes.discard(id);
-      VoiceError::Output
-    }),
+    Ok(speech) => {
+      let finished = library::Finished {
+        kind: Kind::Voice,
+        title: text,
+        source: output.clone(),
+        duration_ms: speech.duration_ms,
+        peaks: speech.peaks,
+        cloned: reference.is_some(),
+      };
+      library::keep(&app, finished).await.map_err(|_| {
+        takes.discard(id);
+        VoiceError::Output
+      })
+    }
     Err(error) => {
       takes.discard(id);
       Err(error)

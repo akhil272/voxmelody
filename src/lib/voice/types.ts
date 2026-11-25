@@ -4,6 +4,7 @@ export type VoiceError =
   | "tooLong"
   | "model"
   | "output"
+  | "reference"
   | "request"
   | "engine"
   | "cancelled";

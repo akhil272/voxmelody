@@ -1,13 +1,11 @@
 <script lang="ts">
-  import { Button } from "#lib/components/ui/button/index.js";
+  import CopyButton from "#lib/components/shared/copy-button.svelte";
   import { COPY } from "#lib/constants.js";
   import { models } from "#lib/models/store.svelte.js";
   import type { ModelInfo } from "#lib/models/types.js";
   import { formatBytes, formatMemory, formatMonth, summariseLanguages } from "#lib/utils.js";
 
   let { model }: { model: ModelInfo } = $props();
-
-  let copied = $state(false);
 
   const copy = COPY.models;
   const pack = $derived(models.packs[model.id]);
@@ -23,11 +21,6 @@
       { label: copy.precision, value: model.precision },
     ].filter(({ value }) => value),
   );
-
-  async function copyLink() {
-    await navigator.clipboard.writeText(model.pageUrl);
-    copied = true;
-  }
 </script>
 
 <dl class="grid grid-cols-4 gap-x-4 gap-y-2">
@@ -40,5 +33,5 @@
 </dl>
 <div class="flex items-center gap-3">
   <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground select-text">{model.pageUrl}</span>
-  <Button variant="link" size="inline" onclick={copyLink}>{copied ? copy.copied : copy.copyLink}</Button>
+  <CopyButton value={model.pageUrl} label={copy.copyLink} />
 </div>

@@ -20,6 +20,7 @@ fn request<'a>(text: &'a str, output: &'a Path) -> Request<'a> {
     pause: 1.0,
     threads: 0,
     steps: 0,
+    reference: None,
     output,
   }
 }

@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use sherpa_onnx::{
   GenerationConfig, OfflineTts, OfflineTtsConfig, OfflineTtsKittenModelConfig, OfflineTtsKokoroModelConfig,
-  OfflineTtsModelConfig, OfflineTtsSupertonicModelConfig,
+  OfflineTtsModelConfig, OfflineTtsPocketModelConfig, OfflineTtsSupertonicModelConfig,
 };
 
 use crate::{ErrorCode, Event, Request, emit, text, wav};
@@ -14,6 +14,10 @@ const SILENCE: f32 = 0.001;
 /// Pauses at normal length, in the units of each family.
 const PAUSE_SCALE: f32 = 0.2;
 const PAUSE_SECONDS: f32 = 0.3;
+/// What the model was made for; more steps add time without detail.
+const POCKET_STEPS: i32 = 2;
+/// The app limits the sample, so this only keeps the library from cutting it.
+const REFERENCE_SECONDS: f32 = 20.0;
 const ESPEAK: &str = "espeak-ng-data";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
@@ -22,6 +26,8 @@ pub enum Family {
   Kokoro,
   Kitten,
   Supertonic,
+  /// Speaks in the voice of a reference recording.
+  Pocket,
 }
 
 /// Everything fixed when a model loads.
@@ -69,12 +75,24 @@ impl Key {
           voice_style: Some("voice.bin".into()),
         };
       }
+      Family::Pocket => {
+        config.pocket = OfflineTtsPocketModelConfig {
+          lm_flow: Some("lm_flow.int8.onnx".into()),
+          lm_main: Some("lm_main.int8.onnx".into()),
+          encoder: Some("encoder.onnx".into()),
+          decoder: Some("decoder.int8.onnx".into()),
+          text_conditioner: Some("text_conditioner.onnx".into()),
+          vocab_json: Some("vocab.json".into()),
+          token_scores_json: Some("token_scores.json".into()),
+          voice_embedding_cache_capacity: 4,
+        };
+      }
     }
     config
   }
 }
 
-fn generation(request: &Request) -> GenerationConfig {
+fn generation(request: &Request) -> Result<GenerationConfig, ErrorCode> {
   let mut config =
     GenerationConfig { sid: request.speaker, speed: request.speed.clamp(0.5, 2.0), ..Default::default() };
   if request.family == Family::Supertonic {
@@ -86,7 +104,15 @@ fn generation(request: &Request) -> GenerationConfig {
   } else {
     config.silence_scale = request.pause * PAUSE_SCALE;
   }
-  config
+  if request.family == Family::Pocket {
+    let path = request.reference.as_ref().ok_or(ErrorCode::Request)?;
+    let (samples, rate) = wav::read(path).map_err(|_| ErrorCode::Reference)?;
+    config.reference_audio = Some(samples);
+    config.reference_sample_rate = rate as i32;
+    config.num_steps = POCKET_STEPS;
+    config.extra = Some([("max_reference_audio_len".into(), serde_json::json!(REFERENCE_SECONDS))].into());
+  }
+  Ok(config)
 }
 
 #[derive(Default)]
@@ -107,12 +133,13 @@ impl Engine {
 
   pub fn speak(&mut self, request: &Request) -> Result<Event, ErrorCode> {
     let mut text = text::prepare(&request.text, &request.language);
-    if request.family == Family::Supertonic && text::is_english(&request.language) {
+    if matches!(request.family, Family::Supertonic | Family::Pocket) && text::is_english(&request.language) {
       text = text::spell_prices(&text);
     }
     if !text.chars().any(char::is_alphanumeric) {
       return Err(ErrorCode::NoSpeech);
     }
+    let config = generation(request)?;
     let tts = self.load(Key::of(request))?;
     if !(0..tts.num_speakers()).contains(&request.speaker) {
       return Err(ErrorCode::Request);
@@ -120,7 +147,7 @@ impl Engine {
     let audio = tts
       .generate_with_config(
         &text,
-        &generation(request),
+        &config,
         Some(|_: &[f32], value: f32| {
           emit(&Event::Progress { value });
           true
