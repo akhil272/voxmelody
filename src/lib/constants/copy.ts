@@ -1,5 +1,7 @@
 export const COPY = {
   appName: "VoxMelody",
+  appNameLead: "Vox",
+  appNameAccent: "Melody",
   tagline: "Generate voice. Create music. All offline, on your machine.",
   navigation: "Main",
   nav: {
