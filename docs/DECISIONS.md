@@ -112,3 +112,18 @@ Samples stay in `voices` in the app data folder, never in the models folder. The
 
 ## D037: Claude Code connection (2026-11-25)
 `voxmelody mcp` runs the same app without a window as a Model Context Protocol server on stdin and stdout: no port, no network, no new dependency. It uses the same commands and checks as the app, and ignores undocumented arguments. Tools: list voices, generate speech, generate music, create mix, list recordings. Cloned voices are excluded, so speech in a person's voice is only made in the app.
+
+## D038: Songs with lyrics (2026-11-25)
+Supersedes D023 on lyrics. Music Studio has Instrumental and Song. Both use the same ACE-Step models; songs send lyrics and an optional language. People always write the lyrics: the 0.6B model writes nonsense and the 1.7B ignores the description. Songs are a fourth Library kind and are not offered in Mix, where ducking expects music without singing.
+
+## D039: Song length (2026-11-25)
+Songs keep their own ending: they are never looped or cut to an exact length. Auto estimates the length from the lyrics (20 to 240 seconds). A song that stops mid-music is composed once more with a quarter more time, then accepted with a short fade.
+
+## D040: Song languages (2026-11-25)
+Listed by name when at least 80% of the sung words were recognised with the recommended model: English, French, German, Italian, Korean, Polish, Portuguese, Spanish and Turkish. Any other language works through Auto, without a promise of quality.
+
+## D041: Small graphics work units (2026-11-25)
+The engine sets `GGML_VK_MAX_NODES_PER_SUBMIT` to 4. At the default of 100, Windows reset the graphics driver during audio decoding on the GTX 1060 (its limit is two seconds per task). Speed is unchanged.
+
+## D042: DiffRhythm is not offered (2026-11-25)
+DiffRhythm 1's decoder has the Stability AI Community Licence, and DiffRhythm 2 has no maintained native runtime. Revisit when one exists.

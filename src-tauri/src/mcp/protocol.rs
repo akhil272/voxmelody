@@ -42,7 +42,7 @@ fn initialize(id: Value, params: &Value) -> Incoming {
       "protocolVersion": version,
       "capabilities": { "tools": {} },
       "serverInfo": { "name": "voxmelody", "title": "VoxMelody", "version": env!("CARGO_PKG_VERSION") },
-      "instructions": "Generates speech, instrumental music and mixes on this computer. Results are WAV files saved to the VoxMelody library."
+      "instructions": "Generates speech, instrumental music, songs and mixes on this computer. Results are WAV files saved to the VoxMelody library."
     }),
   ))
 }

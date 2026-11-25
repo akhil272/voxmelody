@@ -11,6 +11,7 @@ use crate::mix::commands::MixRequest;
 use crate::models::manager::{ModelManager, PackState};
 use crate::models::manifest::{self, Pack, PackKind};
 use crate::music::commands::MusicRequest;
+use crate::music::song::LANGUAGES;
 use crate::preferences;
 use crate::takes::Take;
 use crate::voice::commands::SpeechRequest;
@@ -18,6 +19,7 @@ use crate::voice::voices;
 
 pub const SPEECH: &str = "generate_speech";
 pub const MUSIC: &str = "generate_music";
+pub const SONG: &str = "generate_song";
 const MIX: &str = "create_mix";
 const VOICES: &str = "list_voices";
 const RECORDINGS: &str = "list_recordings";
@@ -61,6 +63,22 @@ pub fn definitions() -> Vec<Value> {
       &["prompt"],
     ),
     tool(
+      SONG,
+      "Creates a song that sings the given lyrics and saves it to the library as a WAV file. This can take minutes.",
+      json!({
+        "prompt": { "type": "string", "maxLength": 500, "description": "Style, mood, instruments and kind of voice" },
+        "lyrics": {
+          "type": "string", "maxLength": 2500,
+          "description": "Short lines, with section names such as [Verse], [Chorus] and [Bridge] on their own lines"
+        },
+        "language": { "type": "string", "enum": LANGUAGES, "description": "Omit for any other language" },
+        "seconds": { "type": "integer", "minimum": 20, "maximum": 240, "description": "Omit to fit the lyrics" },
+        "bpm": { "type": "integer", "minimum": 30, "maximum": 300 },
+        "key": { "type": "string", "description": "Such as C major or F# minor" }
+      }),
+      &["prompt", "lyrics"],
+    ),
+    tool(
       MIX,
       "Combines a voice recording with a music recording and saves the mix as a WAV file.",
       json!({
@@ -77,7 +95,7 @@ pub fn definitions() -> Vec<Value> {
 }
 
 pub fn exists(name: &str) -> bool {
-  [VOICES, SPEECH, MUSIC, MIX, RECORDINGS].contains(&name)
+  [VOICES, SPEECH, MUSIC, SONG, MIX, RECORDINGS].contains(&name)
 }
 
 /// Explains an error code.
@@ -152,13 +170,19 @@ async fn speech(app: &AppHandle, given: Value) -> Result<Value, String> {
   saved(app, take.await.map_err(explain)?)
 }
 
-async fn music(app: &AppHandle, given: Value) -> Result<Value, String> {
+async fn music(app: &AppHandle, tool: &str, mut given: Value) -> Result<Value, String> {
+  let mut seconds = 30;
+  let mut song = Value::Null;
+  if tool == SONG {
+    seconds = 0;
+    song = json!({ "lyrics": given["lyrics"].take(), "language": given["language"].as_str().unwrap_or_default() });
+  }
   let model = preferred(app, PackKind::Music).await?;
   let defaults = json!({
-    "model": model.id, "prompt": "", "seconds": 30, "bpm": 0, "key": "",
+    "model": model.id, "prompt": "", "seconds": seconds, "song": song, "bpm": 0, "key": "",
     "options": { "seed": null, "steps": 0, "guidance": 0, "creativity": 0, "cpuOnly": false }
   });
-  let request: MusicRequest = arguments(MUSIC, defaults, given)?;
+  let request: MusicRequest = arguments(tool, defaults, given)?;
   let take = crate::music::commands::compose(app.clone(), app.state(), app.state(), app.state(), request);
   saved(app, take.await.map_err(explain)?)
 }
@@ -185,7 +209,7 @@ pub async fn call(app: &AppHandle, name: &str, given: Value) -> Result<Value, St
   match name {
     VOICES => Ok(json!(list_voices(app, &given).await)),
     SPEECH => speech(app, given).await,
-    MUSIC => music(app, given).await,
+    MUSIC | SONG => music(app, name, given).await,
     MIX => mix(app, given).await,
     _ => recordings(app),
   }

@@ -1,8 +1,9 @@
 use serde::Deserialize;
 use tauri::{AppHandle, Emitter, Manager, State};
 
-use super::engine::{MusicEngine, Options, Request};
+use super::engine::{MusicEngine, Options, Request, Song};
 use super::error::MusicError;
+use super::song::{self, SongRequest};
 use crate::library::commands as library;
 use crate::library::store::Kind;
 use crate::models::manager::ModelManager;
@@ -23,21 +24,31 @@ const MODES: [&str; 2] = ["major", "minor"];
 pub struct MusicRequest {
   pub model: String,
   pub prompt: String,
+  /// Zero fits a song to its lyrics.
   pub seconds: u32,
   /// Zero lets the model choose.
   pub bpm: u32,
   /// Empty lets the model choose.
   pub key: String,
+  /// What is sung; left out for an instrumental.
+  pub song: Option<SongRequest>,
   pub options: Options,
 }
 
 impl MusicRequest {
+  fn has_valid_length(&self) -> bool {
+    match &self.song {
+      None => SECONDS.contains(&self.seconds),
+      Some(song) => song.is_valid() && (self.seconds == 0 || song::SECONDS.contains(&self.seconds)),
+    }
+  }
+
   fn is_valid(&self) -> bool {
     let prompt = self.prompt.trim();
     let key = self.key.split_once(' ').is_some_and(|(note, mode)| NOTES.contains(&note) && MODES.contains(&mode));
     !prompt.is_empty()
       && prompt.chars().count() <= MAX_CHARACTERS
-      && SECONDS.contains(&self.seconds)
+      && self.has_valid_length()
       && (self.bpm == 0 || BPM.contains(&self.bpm))
       && (self.key.is_empty() || key)
       && self.options.steps <= MAX_STEPS
@@ -68,9 +79,11 @@ pub async fn compose(
   let locate = async {
     models.installed(&pack.id, PackKind::Music).await.map(|(dir, _)| dir).ok_or(MusicError::NotInstalled)
   };
+  let song = request.song.as_ref();
   let request = Request {
     prompt: request.prompt.trim(),
-    seconds: request.seconds,
+    seconds: song.filter(|_| request.seconds == 0).map_or(request.seconds, SongRequest::seconds),
+    song: song.map(|song| Song { lyrics: song.lyrics.trim(), language: &song.language }),
     bpm: request.bpm,
     key: &request.key,
     options: request.options,
@@ -83,7 +96,7 @@ pub async fn compose(
   match engine.compose(locate, &request, report).await {
     Ok(track) => {
       let finished = library::Finished {
-        kind: Kind::Music,
+        kind: if song.is_some() { Kind::Song } else { Kind::Music },
         title: request.prompt,
         source: output.clone(),
         duration_ms: track.duration_ms,
@@ -117,7 +130,7 @@ mod tests {
   use super::*;
 
   fn request(prompt: &str, seconds: u32, bpm: u32, key: &str) -> MusicRequest {
-    MusicRequest { model: "music".into(), prompt: prompt.into(), seconds, bpm, key: key.into(), options: Options::default() }
+    MusicRequest { model: "music".into(), prompt: prompt.into(), seconds, bpm, key: key.into(), song: None, options: Options::default() }
   }
 
   #[test]
@@ -130,5 +143,11 @@ mod tests {
     assert!(!request("Jazz", 30, 301, "").is_valid());
     assert!(!request("Jazz", 30, 0, "H major").is_valid());
     assert!(!request("Jazz", 30, 0, "C major extra").is_valid());
+    let sing = |seconds| {
+      let song = Some(SongRequest { lyrics: "Hello there".into(), language: "en".into() });
+      MusicRequest { song, ..request("Jazz", seconds, 0, "") }.is_valid()
+    };
+    assert!(sing(0) && sing(240) && !sing(10) && !sing(241));
+    assert!(!request("Jazz", 0, 0, "").is_valid());
   }
 }

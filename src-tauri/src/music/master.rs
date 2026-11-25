@@ -7,6 +7,9 @@ const SILENCE_RATIO: f32 = 0.003;
 const WINDOW_SECONDS: f32 = 0.05;
 const FADE_IN_SECONDS: f32 = 0.01;
 const FADE_OUT_SECONDS: f32 = 2.0;
+const SONG_FADE_SECONDS: f32 = 0.5;
+/// A song still this loud at its end, compared with the whole, was cut off.
+const ENDING_RATIO: f32 = 0.5;
 
 /// Frames that fade at the end of a track; at most an eighth of it.
 pub fn fade_out(length: usize, rate: u32) -> usize {
@@ -41,6 +44,31 @@ pub fn finish(raw: &[f32], rate: u32, seconds: u32) -> Option<Vec<f32>> {
   let length = seconds as usize * rate as usize * CHANNELS;
   let mut track = shape::extend(sound, rate, length);
   shape::fade(&mut track, frames(FADE_IN_SECONDS, rate), fade_out(length, rate));
+  limiter::normalise(&mut track, rate);
+  Some(track)
+}
+
+fn loudness(samples: &[f32]) -> f32 {
+  let power: f32 = samples.iter().map(|sample| sample * sample).sum();
+  (power / samples.len().max(1) as f32).sqrt()
+}
+
+/// False when a song stops in the middle of the music.
+pub fn ends_naturally(raw: &[f32], rate: u32) -> bool {
+  let ending = frames(SONG_FADE_SECONDS, rate) * CHANNELS;
+  let tail = &raw[raw.len().saturating_sub(ending)..];
+  loudness(tail) < loudness(raw) * ENDING_RATIO
+}
+
+/// A song keeps its own length. `None` when the engine produced no sound.
+pub fn finish_song(raw: &[f32], rate: u32) -> Option<Vec<f32>> {
+  let sound = trim_silence(raw, rate);
+  if sound.len() < rate as usize * CHANNELS {
+    return None;
+  }
+  let mut track = sound.to_vec();
+  let frames_total = track.len() / CHANNELS;
+  shape::fade(&mut track, frames(FADE_IN_SECONDS, rate), frames(SONG_FADE_SECONDS, rate).min(frames_total / 8));
   limiter::normalise(&mut track, rate);
   Some(track)
 }
@@ -95,6 +123,23 @@ mod tests {
     let mut raw = tone(12.0, 0.02);
     raw[RATE as usize] = 1.0;
     assert!(peak(&finish(&raw, RATE, 10).unwrap()) <= CEILING + 0.001);
+  }
+
+  #[test]
+  fn songs_keep_their_length() {
+    let song = [tone(12.0, 0.5), tone(1.0, 0.05)].concat();
+    let track = finish_song(&[silence(1.0), song, silence(3.0)].concat(), RATE).unwrap();
+    assert!(track.len().abs_diff(expected(13)) <= frames(0.1, RATE) * CHANNELS);
+    assert_eq!(track[track.len() - 1], 0.0);
+    assert!(finish_song(&silence(5.0), RATE).is_none());
+  }
+
+  #[test]
+  fn notices_cut_off_songs() {
+    assert!(!ends_naturally(&tone(10.0, 0.5), RATE));
+    assert!(ends_naturally(&[tone(10.0, 0.5), silence(1.0)].concat(), RATE));
+    assert!(ends_naturally(&[tone(10.0, 0.5), tone(1.0, 0.1)].concat(), RATE));
+    assert!(!ends_naturally(&[], RATE));
   }
 
   #[test]

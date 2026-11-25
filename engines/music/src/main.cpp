@@ -39,6 +39,8 @@ static const size_t MIN_GPU_MEMORY    = 3500ull * 1024 * 1024;
 // Small tiles decode faster and keep the peak under 2 GB of graphics memory.
 static const int    VAE_CHUNK         = 256;
 
+static const char * INSTRUMENTAL = "[Instrumental]";
+
 static const float LM_SHARE  = 0.25f;
 static const float DIT_SHARE = 0.35f;
 
@@ -123,14 +125,55 @@ static size_t playing_codes(const std::vector<std::string> & codes) {
     return codes.size();
 }
 
-// Composes past the requested length, then keeps only what is needed, so the
-// track never ends early and no time is spent on audio that is cut away.
-static bool compose(ModelStore * store, const AceRequest & request, const std::string & lm_file, int seconds, AceRequest * plan) {
+static std::string join_codes(const std::vector<std::string> & codes) {
+    std::string text;
+    for (const auto & code : codes) {
+        text += (text.empty() ? "" : ",") + code;
+    }
+    return text;
+}
+
+static bool run_lm(ModelStore * store, const std::string & lm_file, AceRequest in, AceRequest * out) {
     AceLmParams params;
     ace_lm_default_params(&params);
     params.model_path = lm_file.c_str();
     params.max_batch  = 1;
+    // A cache sized to the request saves over 1 GB of graphics memory.
+    // A byte of lyrics is never more than one token.
+    params.max_seq    = PROMPT_TOKENS + (int) in.lyrics.size() + (int) in.duration * CODES_PER_SECOND;
+    request_resolve_lm_seed(&in);
 
+    AceLm * lm = ace_lm_load(store, &params);
+    if (!lm) {
+        return false;
+    }
+    Progress progress = { 0, LM_SHARE, in.duration * CODES_PER_SECOND + METADATA_TOKENS };
+    request_init(out);
+    const int rc = ace_lm_generate(lm, &in, 1, out, nullptr, nullptr, tick, &progress);
+    ace_lm_free(lm);
+    return rc == 0;
+}
+
+// Songs keep the ending they were written with: cutting or repeating breaks the singing.
+static bool compose_song(ModelStore * store, const AceRequest & request, const std::string & lm_file, int seconds, AceRequest * plan) {
+    AceRequest in = request;
+    in.duration   = (float) seconds;
+    if (!run_lm(store, lm_file, in, plan)) {
+        return false;
+    }
+    std::vector<std::string> codes = split_codes(plan->audio_codes);
+    codes.resize(playing_codes(codes));
+    if (codes.empty()) {
+        return false;
+    }
+    plan->audio_codes = join_codes(codes);
+    plan->duration    = (float) codes.size() / CODES_PER_SECOND;
+    return true;
+}
+
+// Composes past the requested length, then keeps only what is needed, so the
+// track never ends early and no time is spent on audio that is cut away.
+static bool compose(ModelStore * store, const AceRequest & request, const std::string & lm_file, int seconds, AceRequest * plan) {
     const size_t             needed = (size_t) seconds * CODES_PER_SECOND;
     std::vector<std::string> best;
     for (int attempt = 0; attempt < LM_ATTEMPTS && best.size() < needed; attempt++) {
@@ -139,20 +182,8 @@ static bool compose(ModelStore * store, const AceRequest & request, const std::s
         if (in.lm_seed >= 0) {
             in.lm_seed += attempt;
         }
-        // A cache sized to the request saves over 1 GB of graphics memory.
-        params.max_seq = PROMPT_TOKENS + (int) in.duration * CODES_PER_SECOND;
-        request_resolve_lm_seed(&in);
-
-        AceLm * lm = ace_lm_load(store, &params);
-        if (!lm) {
-            return false;
-        }
-        Progress   progress = { 0, LM_SHARE, in.duration * CODES_PER_SECOND + METADATA_TOKENS };
         AceRequest out;
-        request_init(&out);
-        const int rc = ace_lm_generate(lm, &in, 1, &out, nullptr, nullptr, tick, &progress);
-        ace_lm_free(lm);
-        if (rc != 0) {
+        if (!run_lm(store, lm_file, in, &out)) {
             return false;
         }
         std::vector<std::string> codes = split_codes(out.audio_codes);
@@ -166,11 +197,8 @@ static bool compose(ModelStore * store, const AceRequest & request, const std::s
         return false;
     }
     best.resize(std::min(best.size(), needed));
-    plan->audio_codes.clear();
-    for (const auto & code : best) {
-        plan->audio_codes += (plan->audio_codes.empty() ? "" : ",") + code;
-    }
-    plan->duration = (float) best.size() / CODES_PER_SECOND;
+    plan->audio_codes = join_codes(best);
+    plan->duration    = (float) best.size() / CODES_PER_SECOND;
     return true;
 }
 
@@ -235,7 +263,10 @@ static int run(yyjson_val * root) {
     AceRequest request;
     request_init(&request);
     request.caption           = text("prompt");
-    request.lyrics            = "[Instrumental]";
+    // The models write poor lyrics themselves, so a song always brings its own.
+    const bool song           = yyjson_get_bool(yyjson_obj_get(root, "song"));
+    request.lyrics            = song ? text("lyrics") : INSTRUMENTAL;
+    request.vocal_language    = song ? text("language") : "";
     request.keyscale          = text("key");
     request.bpm               = yyjson_get_int(yyjson_obj_get(root, "bpm"));
     const int         seconds = yyjson_get_int(yyjson_obj_get(root, "seconds"));
@@ -252,7 +283,7 @@ static int run(yyjson_val * root) {
     yyjson_val * seed = yyjson_obj_get(root, "seed");
     request.seed      = yyjson_is_uint(seed) ? (int64_t) yyjson_get_uint(seed) : -1;
     request.lm_seed   = request.seed;
-    if (request.caption.empty() || output.empty() || lm.empty() || dit.empty() || seconds < 1 || request.inference_steps < 1) {
+    if (request.caption.empty() || request.lyrics.empty() || output.empty() || lm.empty() || dit.empty() || seconds < 1 || request.inference_steps < 1) {
         return fail("request");
     }
     if (!backend_set_device(gpu ? ggml_backend_dev_name(gpu) : "CPU")) {
@@ -277,7 +308,8 @@ static int run(yyjson_val * root) {
     AceRequest   plan;
     request_init(&plan);
     AceAudio audio = {};
-    if (!compose(store, request, lm, seconds, &plan) || !synthesize(store, plan, dit, &audio)) {
+    const auto compose_track = song ? compose_song : compose;
+    if (!compose_track(store, request, lm, seconds, &plan) || !synthesize(store, plan, dit, &audio)) {
         return fail("engine");
     }
     if (!write_audio(fs::u8path(output), audio)) {
@@ -290,6 +322,9 @@ static int run(yyjson_val * root) {
 int main() {
 #ifdef _WIN32
     // A crash must end the process quietly, without a system dialog.
+    // Windows resets a graphics driver that is busy for two seconds, so work is
+    // sent in small parts. The Vulkan library reads this when it loads.
+    SetEnvironmentVariableA("GGML_VK_MAX_NODES_PER_SUBMIT", "4");
     SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
     _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
 #endif

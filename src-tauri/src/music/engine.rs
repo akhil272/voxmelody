@@ -8,7 +8,7 @@ use tokio::sync::{Mutex, MutexGuard, OnceCell, watch};
 
 use super::error::MusicError;
 use super::master;
-use crate::audio::wav;
+use crate::audio::{CHANNELS, wav};
 use crate::engine;
 use crate::models::manifest::MusicModel;
 
@@ -30,6 +30,13 @@ pub struct Options {
 }
 
 #[derive(Debug, Clone, Copy)]
+pub struct Song<'a> {
+  pub lyrics: &'a str,
+  /// Empty lets the model tell.
+  pub language: &'a str,
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct Request<'a> {
   pub prompt: &'a str,
   pub seconds: u32,
@@ -37,6 +44,8 @@ pub struct Request<'a> {
   pub bpm: u32,
   /// Empty lets the model choose.
   pub key: &'a str,
+  /// What is sung; `None` makes an instrumental.
+  pub song: Option<Song<'a>>,
   pub options: Options,
   pub model: &'a MusicModel,
   pub output: &'a Path,
@@ -51,6 +60,9 @@ enum Command<'a> {
     seconds: u32,
     bpm: u32,
     key: &'a str,
+    song: bool,
+    lyrics: &'a str,
+    language: &'a str,
     seed: Option<u32>,
     steps: u32,
     guidance: f32,
@@ -221,14 +233,26 @@ impl<P: Fn(f32)> Job<'_, P> {
     result
   }
 
+  /// How much to compose. A song that was cut off gets more time.
+  fn seconds(&self, attempt: u32) -> u32 {
+    let seconds = self.request.seconds;
+    match self.request.song {
+      None => seconds + SPARE_SECONDS,
+      Some(_) => seconds + seconds / 4 * (attempt - 1),
+    }
+  }
+
   /// Runs one engine process and returns the sample rate of the raw audio.
   async fn process(&mut self, cpu_only: bool, attempt: u32, used_gpu: &mut bool) -> Result<u32, MusicError> {
     let (options, model) = (self.request.options, self.request.model);
     let command = Command::Compose {
       prompt: self.request.prompt,
-      seconds: self.request.seconds + SPARE_SECONDS,
+      seconds: self.seconds(attempt),
       bpm: self.request.bpm,
       key: self.request.key,
+      song: self.request.song.is_some(),
+      lyrics: self.request.song.map_or("", |song| song.lyrics),
+      language: self.request.song.map_or("", |song| song.language),
       // Composing again needs other choices, but stays repeatable.
       seed: options.seed.map(|seed| seed.wrapping_add(attempt - 1)),
       steps: if options.steps == 0 { model.steps } else { options.steps },
@@ -266,15 +290,22 @@ impl<P: Fn(f32)> Job<'_, P> {
   /// Writes the finished track, or returns `None` when it should be composed again.
   async fn finish(&self, rate: u32, accept_short: bool) -> Result<Option<Track>, MusicError> {
     let (raw, output) = (self.raw.to_path_buf(), self.request.output.to_path_buf());
-    let seconds = self.request.seconds;
+    let (seconds, is_song) = (self.request.seconds, self.request.song.is_some());
     let work = move || {
       let samples = wav::read_raw(&raw).map_err(|_| MusicError::Output)?;
-      if !accept_short && !master::is_long_enough(&samples, rate, seconds) {
+      let is_complete = if is_song {
+        master::ends_naturally(&samples, rate)
+      } else {
+        master::is_long_enough(&samples, rate, seconds)
+      };
+      if !accept_short && !is_complete {
         return Ok(None);
       }
-      let track = master::finish(&samples, rate, seconds).ok_or(MusicError::Engine)?;
+      let track = if is_song { master::finish_song(&samples, rate) } else { master::finish(&samples, rate, seconds) };
+      let track = track.ok_or(MusicError::Engine)?;
       wav::write(&output, &track, rate).map_err(|_| MusicError::Output)?;
-      Ok(Some(Track { duration_ms: u64::from(seconds) * 1000, peaks: wav::peaks(&track, WAVEFORM_BARS) }))
+      let duration_ms = (track.len() / CHANNELS) as u64 * 1000 / u64::from(rate);
+      Ok(Some(Track { duration_ms, peaks: wav::peaks(&track, WAVEFORM_BARS) }))
     };
     tauri::async_runtime::spawn_blocking(work).await.map_err(|_| MusicError::Engine)?
   }

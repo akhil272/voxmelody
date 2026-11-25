@@ -3,22 +3,31 @@ import {
   AUTO,
   AUTO_BPM,
   AUTO_KEY,
+  AUTO_LANGUAGE,
+  AUTO_LENGTH,
   DEFAULT_BPM,
   DEFAULT_CREATIVITY,
   DEFAULT_GUIDANCE,
   DEFAULT_LENGTH,
+  DEFAULT_SONG_LENGTH,
+  MAX_LYRICS_LENGTH,
   MAX_PROMPT_LENGTH,
 } from "#lib/constants.js";
 import { exportRecording, loadRecording } from "#lib/library/api.js";
 import { models } from "#lib/models/store.svelte.js";
 import { preferences } from "#lib/preferences/store.svelte.js";
 import type { Clip } from "#lib/takes/types.js";
-import { countCharacters, isSeed, parseSeed, toMusicError } from "#lib/utils.js";
+import { countCharacters, hasLyrics, isSeed, parseSeed, toMusicError } from "#lib/utils.js";
 import * as api from "./api.js";
-import type { MusicError, MusicOptions, Processor, TempoMode } from "./types.js";
+import type { LengthMode, MusicError, MusicMode, MusicOptions, Processor, TempoMode } from "./types.js";
 
 class MusicStore {
+  mode = $state<MusicMode>("instrumental");
   prompt = $state("");
+  lyrics = $state("");
+  language = $state(AUTO_LANGUAGE);
+  songLength = $state<LengthMode>("auto");
+  songSeconds = $state(DEFAULT_SONG_LENGTH);
   seconds = $state(DEFAULT_LENGTH);
   tempo = $state<TempoMode>("auto");
   bpm = $state(DEFAULT_BPM);
@@ -36,12 +45,14 @@ class MusicStore {
   exported = $state(false);
 
   length = $derived(countCharacters(this.prompt.trim()));
+  lyricsLength = $derived(countCharacters(this.lyrics.trim()));
+  isSong = $derived(this.mode === "song");
   model = $derived(models.selected("music"));
   steps = $derived(this.#customSteps[this.model?.id ?? ""] ?? this.model?.music?.steps ?? AUTO);
+  described = $derived(!this.generating && this.length > 0 && this.length <= MAX_PROMPT_LENGTH);
   ready = $derived(
-    !this.generating &&
-      this.length > 0 &&
-      this.length <= MAX_PROMPT_LENGTH &&
+    this.described &&
+      (!this.isSong || (hasLyrics(this.lyrics) && this.lyricsLength <= MAX_LYRICS_LENGTH)) &&
       (!preferences.advanced || isSeed(this.seed)),
   );
 
@@ -72,6 +83,16 @@ class MusicStore {
     };
   }
 
+  #seconds() {
+    if (!this.isSong) return this.seconds;
+    return this.songLength === "custom" ? this.songSeconds : AUTO_LENGTH;
+  }
+
+  #song() {
+    if (!this.isSong) return null;
+    return { lyrics: this.lyrics.trim(), language: this.language === AUTO_LANGUAGE ? "" : this.language };
+  }
+
   async generate() {
     const { model } = this;
     if (!this.ready || !model) return;
@@ -83,7 +104,8 @@ class MusicStore {
       const take = await api.compose({
         model: model.id,
         prompt,
-        seconds: this.seconds,
+        seconds: this.#seconds(),
+        song: this.#song(),
         bpm: this.tempo === "custom" ? this.bpm : AUTO_BPM,
         key: this.key === AUTO_KEY ? "" : this.key,
         options: this.#options(),
