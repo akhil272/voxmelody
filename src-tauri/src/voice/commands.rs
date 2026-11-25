@@ -4,8 +4,10 @@ use tauri::{AppHandle, Emitter, Manager, State};
 use super::engine::{Request, VoiceEngine};
 use super::error::VoiceError;
 use super::voices::{self, VOICES, Voice};
+use crate::library::commands as library;
+use crate::library::store::Kind;
 use crate::models::manager::ModelManager;
-use crate::takes::{Take, TakeKind, Takes};
+use crate::takes::{Take, Takes};
 
 const PROGRESS_EVENT: &str = "voice://progress";
 const MAX_CHARACTERS: usize = 10_000;
@@ -55,11 +57,8 @@ pub async fn speak(
   if request.text.chars().count() > MAX_CHARACTERS {
     return Err(VoiceError::TooLong);
   }
-  let (text, kind) = if request.preview {
-    (preview_text(&request.text), TakeKind::Preview)
-  } else {
-    (request.text.as_str(), TakeKind::Voice)
-  };
+  let preview = request.preview;
+  let text = if preview { preview_text(&request.text) } else { request.text.as_str() };
   let (id, output) = takes.reserve();
   let locate = async { models.installed_dir("voice").await.ok_or(VoiceError::NotInstalled) };
   let request =
@@ -68,10 +67,14 @@ pub async fn speak(
     let _ = app.emit(PROGRESS_EVENT, value);
   };
   match engine.speak(locate, &request, report).await {
-    Ok(speech) => {
-      takes.keep(kind, id);
+    Ok(speech) if preview => {
+      takes.keep(id);
       Ok(Take { id, duration_ms: speech.duration_ms, peaks: speech.peaks })
     }
+    Ok(speech) => library::keep(&app, Kind::Voice, text, output.clone(), speech.duration_ms, speech.peaks).await.map_err(|_| {
+      takes.discard(id);
+      VoiceError::Output
+    }),
     Err(error) => {
       takes.discard(id);
       Err(error)

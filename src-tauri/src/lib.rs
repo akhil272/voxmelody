@@ -1,5 +1,6 @@
 mod audio;
 mod engine;
+mod library;
 mod models;
 mod music;
 mod takes;
@@ -14,6 +15,7 @@ pub fn run() {
         app.handle().plugin(tauri_plugin_log::Builder::default().level(log::LevelFilter::Info).build())?;
       }
       models::commands::setup(app.handle())?;
+      library::commands::setup(app.handle())?;
       takes::setup(app.handle())?;
       music::commands::setup(app.handle())?;
       voice::commands::setup(app.handle())
@@ -34,7 +36,12 @@ pub fn run() {
       music::commands::cancel_music,
       music::commands::graphics_name,
       takes::read_take,
-      takes::export_take,
+      library::commands::list_recordings,
+      library::commands::read_recording,
+      library::commands::rename_recording,
+      library::commands::delete_recording,
+      library::commands::export_recording,
+      library::commands::relink_recording,
     ])
     .run(tauri::generate_context!())
     .expect("error while building tauri application");
