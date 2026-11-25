@@ -4,7 +4,7 @@ Last updated: 2026-11-25
 
 ## Current state
 - Phase 0 complete: GO. See `VERIFICATION.md`.
-- Phase 1: app shell and brand system. Generation is not connected yet, so its controls are disabled.
+- Phase 1 complete: branded app shell; Windows release build launches. Generation is not connected, so its controls are disabled. macOS is untested.
 
 ## Next
 1. Phase 2 model manager: manifest with pinned URLs, sizes and SHA-256; resumable downloads; disk-space check; remove.
