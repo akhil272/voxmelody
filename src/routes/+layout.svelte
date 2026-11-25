@@ -2,9 +2,13 @@
   import "./layout.css";
   import Sidebar from "#lib/components/layout/sidebar.svelte";
   import TitleBar from "#lib/components/layout/title-bar.svelte";
+  import { onMount } from "svelte";
+  import { models } from "#lib/models/store.svelte.js";
   import type { LayoutProps } from "./$types";
 
   let { children }: LayoutProps = $props();
+
+  onMount(() => void models.init());
 </script>
 
 <div class="flex h-full flex-col">

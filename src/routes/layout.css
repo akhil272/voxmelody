@@ -35,6 +35,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--primary);
   --color-destructive: var(--destructive);
+  --color-warning: var(--warning);
+  --color-warning-muted: var(--warning-muted);
   --color-border: var(--border);
   --color-input: var(--border);
   --color-ring: var(--primary);
@@ -61,6 +63,8 @@
   --accent: #e6f4f2;
   --border: #dce3ef;
   --destructive: #b42318;
+  --warning: #b45309;
+  --warning-muted: #fef3c7;
   --teal-bright: #14b8a6;
   --cobalt-bright: #4f7df3;
 }
