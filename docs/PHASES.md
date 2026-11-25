@@ -5,7 +5,7 @@ A phase starts only when the previous exit criteria are met.
 | # | Phase | Scope | Exit criteria | Status |
 | --- | --- | --- | --- | --- |
 | 0 | Verification | Models, licences, real generation | Go/no-go recorded | Done: GO |
-| 1 | Foundation | Repo, docs, Tauri + Next.js, brand, app shell | Desktop build runs | In progress |
+| 1 | Foundation | Repo, docs, Tauri + Next.js, brand, app shell | Desktop build runs | Done |
 | 2 | Model manager | Download, checksum, resume, remove; hardware check | Models install on a clean PC | Next |
 | 3 | Voice Studio | Kokoro engine, voices, speed, preview, export | All words spoken; works with network off | Planned |
 | 4 | Music Studio | ACE-Step engine, prompt, length, BPM, key, cancel | Exact length, no silent tail; GPU and CPU | Planned |
