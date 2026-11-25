@@ -12,4 +12,5 @@ src-tauri/gen/schemas/
 /build/
 vite.config.*.timestamp-*
 engines/*/target/
+engines/*/.build/
 src-tauri/binaries/

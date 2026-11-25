@@ -22,6 +22,10 @@ export function getSystemInfo() {
   return invoke<SystemInfo>("system_info");
 }
 
+export function getGraphicsName() {
+  return invoke<string | null>("graphics_name");
+}
+
 export function getLocation() {
   return invoke<LocationStatus>("models_location");
 }

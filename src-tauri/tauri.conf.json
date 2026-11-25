@@ -33,7 +33,7 @@
     "license": "GPL-3.0-only",
     "category": "Music",
     "resources": { "../LICENSE": "LICENSE", "../THIRD_PARTY_LICENSES.md": "THIRD_PARTY_LICENSES.md" },
-    "externalBin": ["binaries/voxmelody-voice"],
+    "externalBin": ["binaries/voxmelody-voice", "binaries/voxmelody-music"],
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
   }
 }

@@ -6,23 +6,21 @@
   import { models } from "#lib/models/store.svelte.js";
   import type { PackId } from "#lib/models/types.js";
 
-  let { id, children }: { id: PackId; children?: Snippet } = $props();
+  let { id, children }: { id: PackId; children: Snippet } = $props();
 
   const installed = $derived(models.packs[id]?.state === "installed");
   const page = $derived(COPY.pages[id]);
 </script>
 
-{#if installed && children}
+{#if installed}
   {@render children()}
 {:else}
   <EmptyPage
     title={COPY.nav[id]}
-    empty={installed ? page.empty : page.setup}
+    empty={page.setup}
     description={page.description}
     icon={PACK_UI[id].icon}
   >
-    {#if !installed}
-      <div class="mt-4 w-full max-w-lg"><ModelCard {id} /></div>
-    {/if}
+    <div class="mt-4 w-full max-w-lg"><ModelCard {id} /></div>
   </EmptyPage>
 {/if}
