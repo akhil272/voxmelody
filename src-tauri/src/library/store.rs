@@ -20,6 +20,8 @@ const LOCK: &str = "library.lock";
 pub enum Kind {
   Voice,
   Music,
+  /// Music with singing.
+  Song,
   Mix,
 }
 

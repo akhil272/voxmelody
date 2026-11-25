@@ -3,12 +3,12 @@
 Last updated: 2026-11-25
 
 ## Current state
-- The model catalog, Voice Studio, My Voices (cloning), Music Studio, Library, Mix and the Claude Code connection work on Windows and are merged to `dev`. `dev` is pushed. Only `main` and `dev` branches remain.
+- The model catalog, Voice Studio, My Voices (cloning), Music Studio (instrumentals and songs), Library, Mix and the Claude Code connection work on Windows and are merged to `dev`. `dev` is pushed. Only `main` and `dev` branches remain.
 - Do not open a pull request to `main` unless the owner asks.
-- Tests: 81 in `src-tauri`, 8 in `engines/voice`.
+- Tests: 86 in `src-tauri`, 8 in `engines/voice`.
 
 ## Next
-1. Owner tests the installed copy: My Voices with a real microphone, and the command in Settings > Connections. Act on that feedback first.
+1. Owner tests the installed copy: My Voices with a real microphone, songs in Music Studio, and the command in Settings > Connections. Act on that feedback first.
 2. Owner confirms the Pocket TTS download source (D034).
 3. Phase 8 Release, on `feature/release` from `dev` (`PHASES.md`): CI, macOS, signing, Store and DMG, updater.
 4. Owner listens to voice, music and mix samples from every model. Mixing levels are constants in `src-tauri/src/mix/render.rs`.
@@ -18,7 +18,7 @@ Last updated: 2026-11-25
 ## Testing
 - `cargo test` in `src-tauri` covers downloads, moves, mastering and the Library.
 - Set `VOXMELODY_TEST_ENGINE` and `VOXMELODY_TEST_VOICE` to run the voice tests against a real engine; without them those tests pass without checking anything.
-- Set `VOXMELODY_TEST_MUSIC_ENGINE` (its DLLs must sit beside it) and `VOXMELODY_TEST_MUSIC` for the real music tests.
+- Set `VOXMELODY_TEST_MUSIC_ENGINE` (its DLLs must sit beside it) and `VOXMELODY_TEST_MUSIC` for the real music tests, and run them with `--test-threads=1`: two engines at once overload the graphics card.
 - Set `VOXMELODY_TEST_MIX_VOICE`, `_MUSIC` and `_OUTPUT` (and optionally `_VOLUME`, 0 to 1) to render a real mix in the tests.
 - Debug builds read `VOXMELODY_DATA_DIR` to keep test data and recordings away from real data. Set `WEBVIEW2_USER_DATA_FOLDER` too when the installed app is open.
 - Run a debug build with `mcp` as its argument and send JSON-RPC lines to test the Claude Code connection.
@@ -28,13 +28,14 @@ Last updated: 2026-11-25
 
 ## Watch out
 - To add a model: edit `scripts/build-manifest.mjs`, run it, add its description in `src/lib/constants/copy.ts`, its licence in `THIRD_PARTY_LICENSES.md`, and voices in `src-tauri/src/voice/voices.rs`.
-- `.verify/new` holds the catalog's test models, about 9 GB.
+- Development and the installed app share the models in `.verify\VoxMelody Models`. Set `VOXMELODY_DATA_DIR` to `.verify\dev`, whose settings point there. Moving or removing models in either affects both. SFT and XL were deleted; download them again to test.
 - Read the known issues and unverified list in `VERIFICATION.md` first.
 - `panic = "abort"` is on in release: handle errors with `Result`, never rely on catching panics.
 - `src-tauri/tauri.macos.conf.json` repeats the window settings; keep both files in sync.
 - `pnpm engines` needs `VULKAN_SDK`, Visual Studio and about 1 GB free; the first build takes about four minutes. On this PC the SDK is `.verify\vk\sdk\Library`.
 - CMake output lives in `engines/music/.build`; the dot keeps svelte-check from scanning it.
 - `src-tauri/tauri.windows.conf.json` bundles the music DLLs beside the app.
+- Builds from before Songs cannot read a library that contains a song, as with mixes below.
 - Builds from before Mix cannot read a library that contains a mix; they set it aside as `library.damaged`. Update the installed copy before making mixes.
 - A connected Claude Code session keeps `voxmelody.exe mcp` running; installing or removing a model in use can fail until it ends.
 - macOS microphone access needs the text in `src-tauri/Info.plist`, and a signed build also needs the audio input entitlement.

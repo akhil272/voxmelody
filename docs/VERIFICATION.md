@@ -135,6 +135,23 @@ Release dates and authors come from the model cards; ACE-Step and Kitten dates a
 - In the app, with a fake microphone: record, too short, silence, a broken file, an MP3 file, consent required, consent asked again for another owner, names with accents and Chinese, use, generate, Cloned label, play, delete. Creating a voice without consent is refused by Rust.
 - Not checked: a real microphone and its permission prompt, renaming, the long-run quality of many voices, and macOS.
 
+## Songs (2026-11-25)
+
+Share of the sung words recognised by Whisper small, one try each on a GTX 1060 (recommended model; about 30 s for 45 s of song):
+
+| Words recognised | Languages |
+| --- | --- |
+| 98% or more | English (3 songs), Polish |
+| 90 to 95% | Portuguese, Italian, Spanish, French, German |
+| 83 to 89% | Korean, Turkish |
+| Below 60% | Arabic, Japanese, Chinese, Hindi, Russian; Telugu 0% |
+
+- Whisper is weak on sung Hindi, Telugu and Chinese, so these need listeners. Turbo HQ scored higher for Hindi (72%), Japanese (78%) and Arabic (73%), and lower for French, Korean, Polish and Turkish.
+- Most songs ended on their own; Japanese stopped mid-music, which the app now composes again.
+- Display driver resets (event 4101) appeared 19 times in one hour, for instrumentals and for the older engine too. After D041 there were none in more than 20 tracks.
+- In the app: both modes, section buttons, lyrics required, too long, languages, generate, Library label, not offered in Mix. Over MCP: a song, missing and bad lyrics, cancel.
+- Not checked: listening, songs longer than 137 s, SFT and XL, and songs on the CPU.
+
 ## Claude Code connection (2026-11-25)
 
 - Over real pipes: handshake, tools, speech (2.4 s), a 12 s track (20 s), a mix, cancel, wrong recordings, a cloned voice refused, out-of-range and undocumented arguments, and closing (0.1 s, no processes left).

@@ -11,7 +11,7 @@ fn setup() -> Option<(MusicEngine, PathBuf, tempfile::TempDir)> {
 
 fn request(output: &Path) -> Request<'_> {
   let model = crate::models::manifest::find("music").unwrap().music.as_ref().unwrap();
-  Request { prompt: "Calm acoustic guitar", seconds: 10, bpm: 90, key: "G major", options: Options::default(), model, output }
+  Request { prompt: "Calm acoustic guitar", seconds: 10, bpm: 90, key: "G major", song: None, options: Options::default(), model, output }
 }
 
 #[tokio::test]
@@ -37,6 +37,17 @@ async fn composes_on_every_device() {
     assert_eq!(std::fs::metadata(&output).unwrap().len(), 44 + 10 * 48_000 * 4);
     assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
   }
+}
+
+#[tokio::test]
+async fn sings() {
+  let Some((engine, pack, dir)) = setup() else { return };
+  let output = dir.path().join("é.wav");
+  let song = Some(Song { lyrics: "[Verse]\nMorning light is on the water\nLittle boats are coming home", language: "en" });
+  let request = Request { seconds: 30, song, ..request(&output) };
+  let track = engine.compose(async { Ok(pack.clone()) }, &request, |_| {}).await.unwrap();
+  assert!((10_000..=38_000).contains(&track.duration_ms), "{}", track.duration_ms);
+  assert_eq!(std::fs::metadata(&output).unwrap().len() / (48 * 4), track.duration_ms);
 }
 
 #[tokio::test]

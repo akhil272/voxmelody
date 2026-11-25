@@ -1,6 +1,6 @@
 import type { ModelKind } from "#lib/models/types.js";
 
-export type RecordingKind = ModelKind | "mix";
+export type RecordingKind = ModelKind | "song" | "mix";
 export type LibraryError = "missing" | "mismatch" | "diskFull" | "storage";
 
 export interface Recording {
