@@ -3,6 +3,9 @@ export { closeWindow, minimizeWindow, toggleMaximizeWindow } from "./utils/windo
 export { formatBytes, formatMemory, toPercent } from "./utils/format.js";
 export { hasEnoughMemory } from "./utils/memory.js";
 export { toModelError } from "./utils/model-error.js";
+export { countCharacters, toFileName } from "./utils/text.js";
+export { formatTime } from "./utils/time.js";
+export { toVoiceError } from "./utils/voice-error.js";
 export { isMacPlatform } from "./utils/platform.js";
 export { isActiveRoute } from "./utils/routes.js";
 export { waveBand, waveformHeights, wavePath } from "./utils/wave.js";

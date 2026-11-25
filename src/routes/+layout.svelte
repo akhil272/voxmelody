@@ -3,12 +3,16 @@
   import Sidebar from "#lib/components/layout/sidebar.svelte";
   import TitleBar from "#lib/components/layout/title-bar.svelte";
   import { onMount } from "svelte";
+  import { voice } from "#lib/voice/store.svelte.js";
   import { models } from "#lib/models/store.svelte.js";
   import type { LayoutProps } from "./$types";
 
   let { children }: LayoutProps = $props();
 
-  onMount(() => void models.init());
+  onMount(() => {
+    void models.init();
+    void voice.init();
+  });
 </script>
 
 <div class="flex h-full flex-col">

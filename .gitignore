@@ -11,3 +11,5 @@ src-tauri/gen/schemas/
 .svelte-kit/
 /build/
 vite.config.*.timestamp-*
+engines/*/target/
+src-tauri/binaries/
