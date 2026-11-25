@@ -56,10 +56,16 @@ fn mean(values: &[f64]) -> f64 {
 
 /// Loudness in LUFS, or `None` for silence and clips shorter than one block.
 pub fn measure(samples: &[f32], rate: u32) -> Option<f64> {
+  let frames = samples.as_chunks::<CHANNELS>().0;
+  measure_frames(frames.iter().copied(), frames.len(), rate)
+}
+
+/// The same for audio that is calculated as it is read.
+pub fn measure_frames(frames: impl Iterator<Item = [f32; CHANNELS]>, count: usize, rate: u32) -> Option<f64> {
   let step = ((f64::from(rate) * BLOCK_SECONDS) as usize / STEPS_PER_BLOCK).max(1);
   let mut filters: [[Biquad; 2]; CHANNELS] = std::array::from_fn(|_| k_weighting(f64::from(rate)));
-  let mut powers = vec![0.0; samples.len() / CHANNELS / step];
-  for (index, frame) in samples.as_chunks::<CHANNELS>().0.iter().enumerate() {
+  let mut powers = vec![0.0; count / step];
+  for (index, frame) in frames.enumerate() {
     let Some(power) = powers.get_mut(index / step) else { break };
     for (sample, [shelf, pass]) in frame.iter().zip(&mut filters) {
       let weighted = pass.run(shelf.run(f64::from(*sample)));

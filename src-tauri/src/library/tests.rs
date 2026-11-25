@@ -33,6 +33,8 @@ fn renames_and_deletes() {
   library.rename(id, "  New\nname ").unwrap();
   let (path, title) = library.open(id).unwrap();
   assert_eq!(title, "New name");
+  assert!(library.open_kind(id, Kind::Voice).is_ok());
+  assert_eq!(library.open_kind(id, Kind::Music), Err(LibraryError::Missing));
   assert!(library.rename(id, "  ").is_err());
   library.delete(id).unwrap();
   assert!(!path.exists() && library.list().unwrap().is_empty());

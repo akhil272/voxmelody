@@ -1,4 +1,5 @@
 import { isTauri } from "@tauri-apps/api/core";
+import { mix } from "#lib/mix/store.svelte.js";
 import { music } from "#lib/music/store.svelte.js";
 import { toLibraryError } from "#lib/utils.js";
 import { voice } from "#lib/voice/store.svelte.js";
@@ -18,6 +19,9 @@ class LibraryStore {
   error = $state<Notice<LibraryError> | null>(null);
   exportedId = $state<number | null>(null);
   loadError = $state<LibraryError | null>(null);
+
+  voices = $derived(this.recordings.filter(({ kind, available }) => kind === "voice" && available));
+  tracks = $derived(this.recordings.filter(({ kind, available }) => kind === "music" && available));
 
   async init() {
     if (!isTauri()) return;
@@ -69,6 +73,7 @@ class LibraryStore {
       await api.deleteRecording(id);
       voice.forget(id);
       music.forget(id);
+      mix.forget(id);
     });
   }
 

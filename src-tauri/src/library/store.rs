@@ -20,6 +20,7 @@ const LOCK: &str = "library.lock";
 pub enum Kind {
   Voice,
   Music,
+  Mix,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -113,10 +114,20 @@ impl Library {
 
   /// The audio file and title of a recording.
   pub fn open(&self, id: u64) -> Result<(PathBuf, String), LibraryError> {
+    self.open_where(id, |_| true)
+  }
+
+  /// The same, for a recording that must be of one kind.
+  pub fn open_kind(&self, id: u64, kind: Kind) -> Result<(PathBuf, String), LibraryError> {
+    self.open_where(id, |entry| entry.kind == kind)
+  }
+
+  fn open_where(&self, id: u64, accepts: impl Fn(&Entry) -> bool) -> Result<(PathBuf, String), LibraryError> {
     let _lock = self.lock()?;
     let index = self.load()?;
     let entry = find(&index, id)?;
-    Ok((self.locate(entry).ok_or(LibraryError::Missing)?, entry.title.clone()))
+    let path = self.locate(entry).filter(|_| accepts(entry)).ok_or(LibraryError::Missing)?;
+    Ok((path, entry.title.clone()))
   }
 
   /// Changes the title only, so files keep their names.
