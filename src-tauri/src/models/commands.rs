@@ -10,6 +10,7 @@ use super::error::ModelError;
 use super::location::LocationStore;
 use super::manager::{LocationStatus, ModelManager, PackStatus};
 use super::manifest::{self, Pack};
+use crate::music::engine::MusicEngine;
 use crate::voice::engine::VoiceEngine;
 
 const STATUS_EVENT: &str = "models://status";
@@ -80,10 +81,16 @@ pub async fn pause_pack(manager: State<'_, ModelManager>, id: String) -> Result<
 pub async fn remove_pack(
   manager: State<'_, ModelManager>,
   voice: State<'_, VoiceEngine>,
+  music: State<'_, MusicEngine>,
   id: String,
 ) -> Result<(), ModelError> {
-  let _suspended = voice.suspend().await;
-  manager.remove(find(&id)?).await
+  let pack = find(&id)?;
+  // Removing one model never interrupts the other studio.
+  let _suspended = match pack.id.as_str() {
+    "music" => (None, Some(music.suspend().await)),
+    _ => (Some(voice.suspend().await), None),
+  };
+  manager.remove(pack).await
 }
 
 #[tauri::command]
@@ -97,6 +104,7 @@ pub async fn change_models_location(
   app: AppHandle,
   manager: State<'_, ModelManager>,
   voice: State<'_, VoiceEngine>,
+  music: State<'_, MusicEngine>,
 ) -> Result<(), ModelError> {
   let (sender, receiver) = tokio::sync::oneshot::channel();
   app.dialog().file().pick_folder(move |folder| {
@@ -104,7 +112,7 @@ pub async fn change_models_location(
   });
   let Ok(Some(folder)) = receiver.await else { return Ok(()) };
   let path = folder.into_path().map_err(|_| ModelError::Storage)?;
-  let _suspended = voice.suspend().await;
+  let _suspended = (voice.suspend().await, music.suspend().await);
   manager.change_location(&path).await
 }
 
@@ -112,8 +120,9 @@ pub async fn change_models_location(
 pub async fn restore_models_location(
   manager: State<'_, ModelManager>,
   voice: State<'_, VoiceEngine>,
+  music: State<'_, MusicEngine>,
 ) -> Result<(), ModelError> {
-  let _suspended = voice.suspend().await;
+  let _suspended = (voice.suspend().await, music.suspend().await);
   manager.restore_location().await
 }
 

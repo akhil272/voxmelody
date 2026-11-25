@@ -64,18 +64,38 @@ Voice plus ducked music, normalised to about −14 LUFS, stayed fully intelligib
 - The engine imports no networking library and had no open sockets while running.
 - In the app: preview, generate, play, seek, language change, export, cancel (0.1 s), and removing the voice during generation.
 
+## Phase 4 additions (2026-11-25)
+
+Same test machine. Times are the engine process alone, including model loading; audio includes two spare seconds.
+
+| Audio | Device | Time |
+| --- | --- | --- |
+| 32 s | Vulkan, GTX 1060 (tile 1024) | 36 s |
+| 92 s | Vulkan, GTX 1060 (tile 256) | 50 s |
+| 242 s | Vulkan, GTX 1060 (tile 256) | 125 s |
+| 32 s | CPU (tile 1024) | 75 s |
+| 62 s | CPU (tile 1024) | 149 s |
+
+- A 242 s track crashed on the GPU with tile 1024, where whole-system VRAM peaked at 5.8 of 6 GB. With tile 256 it peaked at 3.3 to 3.4 GB, including about 1.7 GB of desktop use.
+- Seven of eight raw tracks had sound to the end; one faded out about three seconds early, which the app now detects and composes again.
+- In the app: 30.00 s files, peaks at −1.0 dBFS, loudness −16.6 to −18.9 LUFS (limited by peaks, D021). Progress, play, cancel (0.1 s), both studios at once, and removing the model during generation.
+- Killing the GPU process mid-track restarted it on the CPU and delivered the track.
+- Engine and pack in folders with non-ASCII names work. With the Vulkan library removed the engine reports the CPU.
+- Requested 84 BPM; four GPU tracks measured about 86, one of them as double time. The key was passed to the model but not measured.
+- The engine and its libraries import no networking library and no Visual C++ runtime.
+
 ## Known issues to handle
 
-1. Music can end early: the 30 s track had 4.9 s of trailing silence. Generate longer, trim silence, fade, and cut to length.
-2. Raw music peaks at 0 dBFS with flat peaks; normalise on export.
-3. VAE decode was the slowest logged synth stage (25.7 s of the 90 s run); tune VAE chunk size.
+1. Solved in Phase 4: exact length without a silent ending (D021).
+2. Solved in Phase 4: tracks are normalised from unclipped samples.
+3. Solved in Phase 4: tile 256 cut VAE decode of a 92 s track from 32 s to 21 s.
 4. Solved in Phase 3: common English abbreviations are expanded before speech.
-5. acestep.cpp has no GitHub release binaries; build them in CI from a pinned commit.
+5. acestep.cpp has no release binaries; `pnpm engines` builds it, and CI must do the same in Phase 8.
 
 ## Not verified
 
 - macOS: no Mac available. The project supports Metal, but it needs a CI build and a real-device run.
 - AMD and Intel GPUs, and PCs with 8 GB RAM.
 - Qwen3-TTS.
-- Generation with the network adapter physically off (the voice engine has no network code; music not yet checked).
+- Generation with the network adapter physically off (neither engine imports network code).
 - Microsoft Store acceptance.
