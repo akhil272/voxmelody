@@ -3,7 +3,7 @@
 Last updated: 2026-11-25
 
 ## Current state
-- The model catalog, Voice Studio, My Voices (cloning), Music Studio, Library, Mix and the Claude Code connection work on Windows and are merged to `dev`. Work up to Mix is pushed. Only `main` and `dev` branches remain.
+- The model catalog, Voice Studio, My Voices (cloning), Music Studio, Library, Mix and the Claude Code connection work on Windows and are merged to `dev`. `dev` is pushed. Only `main` and `dev` branches remain.
 - Do not open a pull request to `main` unless the owner asks.
 - Tests: 81 in `src-tauri`, 8 in `engines/voice`.
 
