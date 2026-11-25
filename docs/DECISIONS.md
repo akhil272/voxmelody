@@ -31,3 +31,12 @@ Tauri has no Node server. All privileged work goes through typed Rust commands.
 
 ## D010: Branching (2026-11-25)
 `feature/*` from `dev`, merged to `dev`; releases are PRs from `dev` to `main`.
+
+## D011: SvelteKit static replaces Next.js (2026-11-25)
+Supersedes D009. Next.js server features cannot run in Tauri. UI JavaScript fell from 767 KB to 332 KB and total UI output from 1.55 MB to 0.45 MB. The UI is client-only (`ssr = false`) with an `index.html` fallback. shadcn-svelte provides the shadcn/ui components.
+
+## D012: Small installer (2026-11-25)
+Release builds optimise for size (opt-level s, LTO, one codegen unit, abort on panic, stripped). Measured Windows installer: 1.3 MB for the app, 11.4 MB in a test that also packed both engines (Vulkan and CPU). Engines ship in the installer; models never do. Only Latin font files are bundled; other scripts use system fonts.
+
+## D013: Model hosting (2026-11-25)
+Extends D008. Hugging Face is primary, pinned to a commit. Cloudflare R2 is the backup mirror, added when needed. The manifest lists several URLs per file, and every file must match its SHA-256 whichever source served it. Voice (about 370 MB) and music (3.28 GB) are separate packs.

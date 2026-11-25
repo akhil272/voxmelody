@@ -13,6 +13,8 @@ pnpm install
 pnpm tauri dev
 ```
 
+Build the Windows installer with `pnpm tauri build --bundles nsis`.
+
 See [docs/PHASES.md](docs/PHASES.md) for the roadmap and [docs/VERIFICATION.md](docs/VERIFICATION.md) for model test results.
 
 ## Licence

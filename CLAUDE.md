@@ -6,7 +6,7 @@ Read `docs/HANDOVER.md` (what is next) and `docs/DECISIONS.md` (what is settled)
 
 ## Stack
 
-- Tauri 2 (Rust) shell, Next.js static export, TypeScript, Tailwind, shadcn/ui
+- Tauri 2 (Rust) shell, SvelteKit (static, Svelte 5 runes), TypeScript, Tailwind, shadcn/ui via shadcn-svelte
 - Native engines run as separate processes: sherpa-onnx (voice), acestep.cpp (music). No Python at runtime.
 
 ## UI rules
@@ -19,10 +19,12 @@ Read `docs/HANDOVER.md` (what is next) and `docs/DECISIONS.md` (what is settled)
 
 ## Code rules
 
-- Reuse components wherever possible; check `src/components` before creating one.
+- Reuse components wherever possible; check `src/lib/components` before creating one.
 - Do not define inline helpers. Put them in `src/lib/utils` and reuse them.
-- UI text lives in `src/lib/constants`; colours come from tokens in `src/app/globals.css`, never raw hex in components.
-- The UI must build as a static export: no server actions, route handlers, or runtime Node APIs.
+- UI text lives in `src/lib/constants`; colours come from tokens in `src/routes/layout.css`, never raw hex in components.
+- The UI must build as a static client-only app: no server routes, form actions, server load functions, or runtime Node APIs.
+- Import project code through the `#lib` alias, and Lucide icons by path (`@lucide/svelte/icons/<name>`).
+- Keep the installer small: models are never bundled, and new dependencies must justify their size.
 - No network calls except user-started model downloads. No telemetry.
 - Verify each model's weight licence (not only its code licence) before adding it.
 
