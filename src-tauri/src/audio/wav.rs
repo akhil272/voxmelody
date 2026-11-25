@@ -1,4 +1,4 @@
-use std::io::{BufWriter, Error, ErrorKind, Write};
+use std::io::{BufWriter, Error, ErrorKind, Seek, SeekFrom, Write};
 use std::path::Path;
 
 use super::CHANNELS;
@@ -9,15 +9,48 @@ const RATES: std::ops::RangeInclusive<u32> = 8_000..=192_000;
 
 /// Writes interleaved stereo as 16-bit PCM.
 pub fn write(path: &Path, samples: &[f32], rate: u32) -> std::io::Result<()> {
-  let frame_bytes = CHANNELS as u32 * SAMPLE_BYTES;
+  write_to(BufWriter::new(std::fs::File::create(path)?), samples, rate, CHANNELS as u16)
+}
+
+pub fn write_mono(path: &Path, samples: &[f32], rate: u32) -> std::io::Result<()> {
+  write_to(BufWriter::new(std::fs::File::create(path)?), samples, rate, 1)
+}
+
+/// A mono file in memory.
+pub fn mono(samples: &[f32], rate: u32) -> std::io::Result<Vec<u8>> {
+  let mut data = Vec::new();
+  write_to(&mut data, samples, rate, 1)?;
+  Ok(data)
+}
+
+/// Adds a comment that travels with the file. The audio is unchanged.
+pub fn add_comment(path: &Path, comment: &str) -> std::io::Result<()> {
+  let mut text = comment.as_bytes().to_vec();
+  // Ends with a zero and an even size, as the format requires.
+  text.push(0);
+  text.resize(text.len().next_multiple_of(2), 0);
+  let mut chunk = b"LIST".to_vec();
+  chunk.extend((text.len() as u32 + 12).to_le_bytes());
+  chunk.extend(b"INFOICMT");
+  chunk.extend((text.len() as u32).to_le_bytes());
+  chunk.extend(text);
+  let mut file = std::fs::File::options().read(true).write(true).open(path)?;
+  let length = file.seek(SeekFrom::End(0))?;
+  let total = u32::try_from(length + chunk.len() as u64 - 8).map_err(|_| invalid())?;
+  file.write_all(&chunk)?;
+  file.seek(SeekFrom::Start(4))?;
+  file.write_all(&total.to_le_bytes())
+}
+
+fn write_to(mut file: impl Write, samples: &[f32], rate: u32, channels: u16) -> std::io::Result<()> {
+  let frame_bytes = u32::from(channels) * SAMPLE_BYTES;
   let data_bytes = samples.len() as u32 * SAMPLE_BYTES;
-  let mut file = BufWriter::new(std::fs::File::create(path)?);
   file.write_all(b"RIFF")?;
   file.write_all(&(HEADER_BYTES + data_bytes).to_le_bytes())?;
   file.write_all(b"WAVEfmt ")?;
   file.write_all(&16u32.to_le_bytes())?;
   file.write_all(&1u16.to_le_bytes())?;
-  file.write_all(&(CHANNELS as u16).to_le_bytes())?;
+  file.write_all(&channels.to_le_bytes())?;
   file.write_all(&rate.to_le_bytes())?;
   file.write_all(&(rate * frame_bytes).to_le_bytes())?;
   file.write_all(&(frame_bytes as u16).to_le_bytes())?;
@@ -130,6 +163,21 @@ mod tests {
     data.splice(36..36, *b"LIST\x01\0\0\0x\0");
     std::fs::write(&path, &data).unwrap();
     assert_eq!(read(&path).unwrap().samples.len(), 8);
+  }
+
+  #[test]
+  fn comments_leave_the_audio_alone() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("a.wav");
+    write_mono(&path, &[0.5, -0.5, 0.25], 24_000).unwrap();
+    for comment in ["Odd", "Even"] {
+      add_comment(&path, comment).unwrap();
+      let data = std::fs::read(&path).unwrap();
+      assert_eq!(u32::from_le_bytes(data[4..8].try_into().unwrap()) as usize, data.len() - 8);
+      assert!(data.windows(comment.len()).any(|bytes| bytes == comment.as_bytes()));
+      let audio = read(&path).unwrap();
+      assert_eq!((audio.rate, audio.samples.len()), (24_000, 6));
+    }
   }
 
   #[test]

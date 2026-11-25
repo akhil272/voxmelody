@@ -30,5 +30,6 @@ The voice engine (`voxmelody-voice`) statically links sherpa-onnx with eSpeak NG
 | Qwen3-Embedding-0.6B | Apache-2.0 | https://huggingface.co/Qwen/Qwen3-Embedding-0.6B |
 | ACE-Step 1.5 | MIT | https://huggingface.co/ACE-Step/Ace-Step1.5 |
 | Kitten TTS 0.8 (Nano, Micro, Mini) | Apache-2.0 | https://huggingface.co/KittenML/kitten-tts-mini-0.8 |
+| Pocket TTS, by Kyutai, converted to ONNX | CC-BY-4.0, with prohibited uses | https://huggingface.co/kyutai/pocket-tts, https://huggingface.co/csukuangfj2/sherpa-onnx-pocket-tts-int8-2026-01-26 |
 | Supertonic 3 | OpenRAIL-M, with use restrictions | https://huggingface.co/Supertone/supertonic-3/blob/main/LICENSE |
 | ACE-Step 1.5 SFT and XL Turbo | MIT | https://huggingface.co/ACE-Step |

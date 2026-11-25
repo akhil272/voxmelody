@@ -6,6 +6,7 @@ const VOICE_ERRORS: readonly string[] = [
   "tooLong",
   "model",
   "output",
+  "reference",
   "request",
   "engine",
   "cancelled",

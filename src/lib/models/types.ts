@@ -12,7 +12,7 @@ export interface PackStatus {
 }
 
 export interface VoiceModel {
-  family: "kokoro" | "kitten" | "supertonic";
+  family: "kokoro" | "kitten" | "supertonic" | "pocket";
 }
 
 export interface MusicModel {

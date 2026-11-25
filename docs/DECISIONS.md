@@ -100,3 +100,15 @@ Models with restricted licences, currently Supertonic 3 (OpenRAIL-M), may be lis
 
 ## D033: Preferences (2026-11-25)
 `preferences.json` in the app data folder keeps Advanced, chosen models and favourites. A damaged file resets them.
+
+## D034: Voice cloning with Pocket TTS (2026-11-25)
+Phase 9 ran before Phase 8 by the owner's decision. Cloning uses Pocket TTS (100M, CC-BY-4.0, English, 198 MB) through the existing voice engine; it needs no transcript. ZipVoice was rejected because its training data (Emilia) is non-commercial. Kyutai's own page asks people to accept its prohibited uses before downloading; the pinned sherpa-onnx conversion does not, so the app shows the restriction notice and its own consent step. The owner should confirm this source before release.
+
+## D035: Consent for cloned voices (2026-11-25)
+A voice is created from a recording of a spoken consent statement or from a file. Both need a stated owner and a confirmation that Rust also requires, and the choice and time are kept. Nothing checks that the speaker is who they say. Every recording and mix with a cloned voice is marked Cloned in the Library and carries a comment inside the file saying it is AI-generated.
+
+## D036: Cloned voice samples (2026-11-25)
+Samples stay in `voices` in the app data folder, never in the models folder. The page decodes any audio format and sends mono 24 kHz samples; Rust trims, levels, cuts at a pause (5 to 15 seconds) and adds half a second of silence before and 0.3 after. Without that silence, openings were often lost or gained words.
+
+## D037: Claude Code connection (2026-11-25)
+`voxmelody mcp` runs the same app without a window as a Model Context Protocol server on stdin and stdout: no port, no network, no new dependency. It uses the same commands and checks as the app, and ignores undocumented arguments. Tools: list voices, generate speech, generate music, create mix, list recordings. Cloned voices are excluded, so speech in a person's voice is only made in the app.

@@ -24,6 +24,8 @@ pub struct Request<'a> {
   pub pause: f32,
   pub threads: u32,
   pub steps: u32,
+  /// A recording of the voice to speak in, for cloned voices.
+  pub reference: Option<&'a Path>,
   pub output: &'a Path,
 }
 

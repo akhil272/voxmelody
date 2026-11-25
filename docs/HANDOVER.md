@@ -3,15 +3,17 @@
 Last updated: 2026-11-25
 
 ## Current state
-- The model catalog, Voice Studio, Music Studio, Library and Mix work on Windows and are merged to `dev`. Work up to Mix is pushed. Only `main` and `dev` branches remain.
+- The model catalog, Voice Studio, My Voices (cloning), Music Studio, Library, Mix and the Claude Code connection work on Windows and are merged to `dev`. Work up to Mix is pushed. Only `main` and `dev` branches remain.
 - Do not open a pull request to `main` unless the owner asks.
-- Tests: 65 in `src-tauri`, 7 in `engines/voice`.
+- Tests: 81 in `src-tauri`, 8 in `engines/voice`.
 
 ## Next
-1. Phase 8 Release, on `feature/release` from `dev` (`PHASES.md`): CI, macOS, signing, Store and DMG, updater.
-2. Owner listens to voice, music and mix samples from every model. Mixing levels are constants in `src-tauri/src/mix/render.rs`.
-3. Native listeners check Supertonic's weaker languages (`VERIFICATION.md`).
-4. Test music on AMD, Intel and 8 GB RAM PCs; decide on integrated GPUs (D022).
+1. Owner tests the installed copy: My Voices with a real microphone, and the command in Settings > Connections. Act on that feedback first.
+2. Owner confirms the Pocket TTS download source (D034).
+3. Phase 8 Release, on `feature/release` from `dev` (`PHASES.md`): CI, macOS, signing, Store and DMG, updater.
+4. Owner listens to voice, music and mix samples from every model. Mixing levels are constants in `src-tauri/src/mix/render.rs`.
+5. Native listeners check Supertonic's weaker languages (`VERIFICATION.md`).
+6. Test music on AMD, Intel and 8 GB RAM PCs; decide on integrated GPUs (D022).
 
 ## Testing
 - `cargo test` in `src-tauri` covers downloads, moves, mastering and the Library.
@@ -19,6 +21,8 @@ Last updated: 2026-11-25
 - Set `VOXMELODY_TEST_MUSIC_ENGINE` (its DLLs must sit beside it) and `VOXMELODY_TEST_MUSIC` for the real music tests.
 - Set `VOXMELODY_TEST_MIX_VOICE`, `_MUSIC` and `_OUTPUT` (and optionally `_VOLUME`, 0 to 1) to render a real mix in the tests.
 - Debug builds read `VOXMELODY_DATA_DIR` to keep test data and recordings away from real data. Set `WEBVIEW2_USER_DATA_FOLDER` too when the installed app is open.
+- Run a debug build with `mcp` as its argument and send JSON-RPC lines to test the Claude Code connection.
+- A fake microphone for tests: `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--use-fake-ui-for-media-stream --use-fake-device-for-media-stream --use-file-for-fake-audio-capture=<wav>`.
 - A debug build shows the built UI only with `cargo build --features tauri/custom-protocol`, after `pnpm build`.
 - The owner tests an installed copy on this PC. Stop test processes by path or id, never by name.
 
@@ -32,6 +36,8 @@ Last updated: 2026-11-25
 - CMake output lives in `engines/music/.build`; the dot keeps svelte-check from scanning it.
 - `src-tauri/tauri.windows.conf.json` bundles the music DLLs beside the app.
 - Builds from before Mix cannot read a library that contains a mix; they set it aside as `library.damaged`. Update the installed copy before making mixes.
+- A connected Claude Code session keeps `voxmelody.exe mcp` running; installing or removing a model in use can fail until it ends.
+- macOS microphone access needs the text in `src-tauri/Info.plist`, and a signed build also needs the audio input entitlement.
 - A mix is held in memory: expect about 1 GB for a 20-minute voice.
 - Do not upgrade sherpa-onnx to 2.x (D003) or add MusicGen (D004).
 - `.verify/` is local test data and is never committed. `.verify\VoxMelody Models` is the installed app's models folder; do not delete it.

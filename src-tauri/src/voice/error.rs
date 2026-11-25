@@ -9,6 +9,8 @@ pub enum VoiceError {
   TooLong,
   Model,
   Output,
+  /// The recording of a cloned voice is gone or unreadable.
+  Reference,
   Request,
   Engine,
   Cancelled,
