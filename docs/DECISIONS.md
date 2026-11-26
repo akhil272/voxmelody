@@ -128,8 +128,8 @@ The engine sets `GGML_VK_MAX_NODES_PER_SUBMIT` to 4. At the default of 100, Wind
 ## D042: DiffRhythm is not offered (2026-11-25)
 DiffRhythm 1's decoder has the Stability AI Community Licence, and DiffRhythm 2 has no maintained native runtime. Revisit when one exists.
 
-## D043: Private repository (2026-11-26)
-The repository is private by the owner's decision. The app stays GPL-3.0, and eSpeak NG (GPL-3.0) is linked into the voice engine, so every published installer must come with its complete source, for example a source archive beside each download.
+## D043: Stays open source (2026-11-26)
+The repository was made private and then public again the same day: the owner chose open source over removing Kokoro and Kitten. The app stays GPL-3.0 (D007), so eSpeak NG can stay in the voice engine. Every installer links to the public source.
 
 ## D044: Violet brand colour (2026-11-26)
 Violet `#5D20E1` replaces teal as the primary and voice colour, in the app and its icon. Cobalt stays the music colour.
