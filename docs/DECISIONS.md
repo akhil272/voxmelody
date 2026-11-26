@@ -145,3 +145,6 @@ Library has All, Voice, Music and Mix tabs, starting on All. Songs are listed un
 
 ## D048: Version 1.0.0 (2026-11-26)
 The first release is 1.0.0. `package.json`, `tauri.conf.json` and `src-tauri/Cargo.toml` must match.
+
+## D049: Release builds and hosting (2026-11-26)
+Windows installers are built on the owner's PC. macOS disk images, one for Apple silicon and one for Intel, are built unsigned (ad-hoc) by `.github/workflows/macos.yml` on native GitHub runners when a `v*` tag is pushed; they need macOS 13 or later. A local script, kept out of the repository in `.private/`, collects all three and uploads them to Cloudflare R2 under `voxmelody/<version>/` and `voxmelody/latest/` with stable file names, plus `voxmelody/latest.json`. R2 keys live only in `.env.release` on the owner's PC. builtbyakhil.com links to the `latest` files, so its links never change.
