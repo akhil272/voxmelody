@@ -14,6 +14,10 @@ const BACKUP: &str = "library.bak";
 const TEMPORARY: &str = "library.part";
 const DAMAGED: &str = "library.damaged";
 const LOCK: &str = "library.lock";
+/// The folder chosen for new recordings; absent means the default.
+const SAVE_FOLDER: &str = "save-folder.json";
+const SAVE_FOLDER_TEMPORARY: &str = "save-folder.part";
+const PROBE: &str = ".voxmelody-probe";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -71,10 +75,25 @@ pub struct NewRecording<'a> {
   pub cloned: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SaveFolder {
+  pub path: PathBuf,
+  pub is_default: bool,
+  /// False when the chosen folder cannot be reached, for example an unplugged drive.
+  pub available: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+struct SavedFolder {
+  path: PathBuf,
+}
+
 /// The index is read and written under a lock, so two open windows agree.
 #[derive(Debug, Clone)]
 pub struct Library {
   data: PathBuf,
+  /// Where recordings go unless another folder was chosen.
   audio: PathBuf,
   fallback: PathBuf,
 }
@@ -85,6 +104,39 @@ impl Library {
     fs::create_dir_all(&data)?;
     let fallback = data.join("recordings");
     Ok(Self { data, audio, fallback })
+  }
+
+  /// Read on every use, so every window and the assistant agree.
+  pub fn save_folder(&self) -> SaveFolder {
+    match self.chosen_folder() {
+      Some(path) => SaveFolder { available: path.is_dir(), path, is_default: false },
+      None => SaveFolder { path: self.audio.clone(), is_default: true, available: true },
+    }
+  }
+
+  /// Saves new recordings in `folder`, or in the default folder for `None`.
+  /// Existing recordings stay where they are.
+  pub fn set_save_folder(&self, folder: Option<&Path>) -> Result<(), LibraryError> {
+    let _lock = self.lock()?;
+    let Some(folder) = folder.filter(|folder| *folder != self.audio) else {
+      return match fs::remove_file(self.data.join(SAVE_FOLDER)) {
+        Err(error) if error.kind() != ErrorKind::NotFound => Err(error.into()),
+        _ => Ok(()),
+      };
+    };
+    fs::create_dir_all(folder)?;
+    let probe = folder.join(PROBE);
+    fs::write(&probe, b"")?;
+    let _ = fs::remove_file(probe);
+    let data = serde_json::to_vec(&SavedFolder { path: folder.to_path_buf() }).map_err(|_| LibraryError::Storage)?;
+    let temporary = self.data.join(SAVE_FOLDER_TEMPORARY);
+    fs::write(&temporary, data)?;
+    Ok(fs::rename(temporary, self.data.join(SAVE_FOLDER))?)
+  }
+
+  fn chosen_folder(&self) -> Option<PathBuf> {
+    let data = fs::read(self.data.join(SAVE_FOLDER)).ok()?;
+    serde_json::from_slice::<SavedFolder>(&data).ok().map(|saved| saved.path)
   }
 
   /// Newest first.
@@ -202,13 +254,15 @@ impl Library {
   /// The remembered path, or the same file back in a library folder.
   fn locate(&self, entry: &Entry) -> Option<PathBuf> {
     let name = entry.path.file_name()?;
-    [entry.path.clone(), self.audio.join(name), self.fallback.join(name)]
+    let chosen = self.chosen_folder().map(|folder| folder.join(name));
+    [Some(entry.path.clone()), chosen, Some(self.audio.join(name)), Some(self.fallback.join(name))]
       .into_iter()
+      .flatten()
       .find(|path| entry.fingerprint.matches(path))
   }
 
   fn store(&self, source: &Path, title: &str) -> std::io::Result<PathBuf> {
-    store_in(&self.audio, source, title).or_else(|error| {
+    store_in(&self.save_folder().path, source, title).or_else(|error| {
       log::warn!("library folder unavailable: {error}");
       store_in(&self.fallback, source, title)
     })

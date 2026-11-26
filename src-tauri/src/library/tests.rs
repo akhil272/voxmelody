@@ -142,3 +142,42 @@ fn windows_can_add_at_the_same_time() {
   ids.dedup();
   assert_eq!(ids.len(), 20);
 }
+
+#[test]
+fn saves_in_the_chosen_folder_and_restores_the_default() {
+  let dir = tempfile::tempdir().unwrap();
+  let library = library(&dir);
+  assert!(library.save_folder().is_default);
+  let before = add(&library, &dir, "Before", 10);
+
+  let chosen = dir.path().join("Chosen");
+  library.set_save_folder(Some(&chosen)).unwrap();
+  // Another window reads the same choice.
+  let other = super::tests::library(&dir);
+  assert_eq!(other.save_folder(), SaveFolder { path: chosen.clone(), is_default: false, available: true });
+  let after = add(&other, &dir, "After", 12);
+  assert_eq!(fs::read_dir(&chosen).unwrap().count(), 1);
+  assert!(!chosen.join(PROBE).exists());
+
+  // Earlier recordings stay where they were and both still play.
+  assert!(library.open(before.id).is_ok() && library.open(after.id).is_ok());
+
+  library.set_save_folder(None).unwrap();
+  library.set_save_folder(None).unwrap();
+  assert!(library.save_folder().is_default);
+  assert!(library.open(after.id).is_ok());
+}
+
+#[test]
+fn an_unreachable_folder_falls_back() {
+  let dir = tempfile::tempdir().unwrap();
+  let library = library(&dir);
+  let chosen = dir.path().join("Drive");
+  library.set_save_folder(Some(&chosen)).unwrap();
+  fs::remove_dir(&chosen).unwrap();
+  // A file where the folder was stops it from being created again.
+  fs::write(&chosen, b"").unwrap();
+  assert!(!library.save_folder().available);
+  let recording = add(&library, &dir, "Kept", 10);
+  assert!(library.open(recording.id).is_ok());
+}

@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { toAudioUrl, toFileName } from "#lib/utils.js";
-import type { Recording } from "./types.js";
+import type { Recording, SaveFolder } from "./types.js";
 
 export function listRecordings() {
   return invoke<Recording[]>("list_recordings");
@@ -28,6 +28,19 @@ export function exportRecording(id: number, title: string) {
 /** Resolves to false when the user closes the file picker. */
 export function relinkRecording(id: number) {
   return invoke<boolean>("relink_recording", { id });
+}
+
+export function readSaveFolder() {
+  return invoke<SaveFolder>("save_folder");
+}
+
+/** Resolves to false when the user closes the folder picker. */
+export function changeSaveFolder() {
+  return invoke<boolean>("change_save_folder");
+}
+
+export function restoreSaveFolder() {
+  return invoke<void>("restore_save_folder");
 }
 
 export function onLibraryChanged(handler: () => void) {

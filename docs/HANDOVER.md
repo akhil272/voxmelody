@@ -1,16 +1,18 @@
 # Handover
 
-Last updated: 2026-11-25
+Last updated: 2026-11-26
 
 ## Current state
 - The model catalog, Voice Studio, My Voices (cloning), Music Studio (instrumentals and songs), Library, Mix and the Claude Code connection work on Windows and are merged to `dev`. `dev` is pushed. Only `main` and `dev` branches remain.
+- The repository is private (D043). Version is 1.0.0 (D048).
+- New on `dev`: violet brand colour, About with support and social links, recordings folder in Settings, Library tabs. Checked in the browser preview and by tests; not yet in an installed copy.
 - Do not open a pull request to `main` unless the owner asks.
-- Tests: 86 in `src-tauri`, 8 in `engines/voice`.
+- Tests: 88 in `src-tauri`, 8 in `engines/voice`.
 
 ## Next
 1. Owner tests the installed copy: My Voices with a real microphone, songs in Music Studio, and the command in Settings > Connections. Act on that feedback first.
 2. Owner confirms the Pocket TTS download source (D034).
-3. Phase 8 Release, on `feature/release` from `dev` (`PHASES.md`): CI, macOS, signing, Store and DMG, updater.
+3. Phase 8 Release, on `feature/release` from `dev` (`PHASES.md`): Windows installer built on this PC, macOS DMGs (Apple silicon and Intel) built by GitHub Actions, files hosted on Cloudflare R2 and listed on builtbyakhil.com. Ship a source archive with each release (D043). Unsigned builds warn on first open; Apple notarization needs a paid Developer ID.
 4. Owner listens to voice, music and mix samples from every model. Mixing levels are constants in `src-tauri/src/mix/render.rs`.
 5. Native listeners check Supertonic's weaker languages (`VERIFICATION.md`).
 6. Test music on AMD, Intel and 8 GB RAM PCs; decide on integrated GPUs (D022).
