@@ -12,7 +12,7 @@ Last updated: 2026-11-26
 ## Next
 1. Owner tests the installed copy: My Voices with a real microphone, songs in Music Studio, and the command in Settings > Connections. Act on that feedback first.
 2. Owner confirms the Pocket TTS download source (D034).
-3. Phase 8 Release (D049): owner creates the R2 bucket, public domain and token, and fills `.env.release`. Then tag `v1.0.0` on the release commit and push the tag; when the macOS workflow passes, run `node .private/release.mjs`. The first macOS build has not run yet. The website listing is a separate task in the builtbyakhil repository. Unsigned builds warn on first open; Apple notarization needs a paid Developer ID.
+3. Phase 8 Release (D049): owner creates the R2 bucket, public domain and token, and fills `.env.release`. Then tag `v1.0.0` on the release commit and push the tag; when the macOS workflow passes, run `node .private/release.mjs`. macOS is Apple silicon only. Tag `v1.0.0` was pushed on c78b919 and its build cancelled; move it to the release commit before running the script, which needs the tag on the current commit. The website listing is a separate task in the builtbyakhil repository. Unsigned builds warn on first open; Apple notarization needs a paid Developer ID.
 4. Owner listens to voice, music and mix samples from every model. Mixing levels are constants in `src-tauri/src/mix/render.rs`.
 5. Native listeners check Supertonic's weaker languages (`VERIFICATION.md`).
 6. Test music on AMD, Intel and 8 GB RAM PCs; decide on integrated GPUs (D022).
