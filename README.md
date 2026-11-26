@@ -20,7 +20,6 @@ VoxMelody is a free desktop app that turns text into natural speech and descript
 | --- | --- |
 | Windows 10 and 11 (64-bit) | Installer (`.exe`) |
 | macOS, Apple silicon (M series) | Disk image (`.dmg`) |
-| macOS, Intel | Disk image (`.dmg`) |
 
 Download links are on [builtbyakhil.com](https://builtbyakhil.com). Models download inside the app the first time you need them.
 
