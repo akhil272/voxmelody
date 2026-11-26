@@ -1,0 +1,59 @@
+# Builds an unsigned macOS disk image for Apple silicon.
+# A local release script downloads them and publishes them with the Windows installer.
+name: macOS
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            src-tauri
+            engines/voice
+
+      - name: Cache music engine build
+        uses: actions/cache@v4
+        with:
+          path: engines/music/.build
+          key: music-aarch64-${{ hashFiles('engines/music/CMakeLists.txt', 'engines/music/src/**') }}
+
+      - name: Install Ninja
+        run: brew install ninja
+
+      - run: pnpm install --frozen-lockfile
+
+      # beforeBuildCommand builds both engines and the UI.
+      - name: Build disk image
+        run: pnpm tauri build --bundles dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-aarch64
+          path: src-tauri/target/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+          retention-days: 30

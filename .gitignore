@@ -1,6 +1,4 @@
 node_modules/
-.next/
-/out/
 src-tauri/target/
 src-tauri/gen/schemas/
 .verify/
@@ -10,4 +8,11 @@ src-tauri/gen/schemas/
 .env*
 .DS_Store
 *.tsbuildinfo
-next-env.d.ts
+.svelte-kit/
+/build/
+vite.config.*.timestamp-*
+engines/*/target/
+engines/*/.build/
+src-tauri/binaries/
+/release/
+/.private/

@@ -1,0 +1,874 @@
+{
+  "packs": [
+    {
+      "id": "voice",
+      "kind": "voice",
+      "name": "Kokoro 1.0",
+      "author": "hexgrad",
+      "released": "2025-01-27",
+      "licence": "Apache-2.0",
+      "restricted": false,
+      "parameters": "82M",
+      "precision": "32-bit",
+      "languages": [
+        "en-us",
+        "en-gb",
+        "es",
+        "fr",
+        "hi",
+        "it",
+        "pt-br"
+      ],
+      "voice": {
+        "family": "kokoro",
+        "file": "model.onnx"
+      },
+      "recommendedMemory": 4294967296,
+      "pageUrl": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "sources": [
+        "https://huggingface.co/csukuangfj/kokoro-multi-lang-v1_0/resolve/f7b96bb6bef5c5da4d3aa4f4e0498fbbf62dc78b/"
+      ],
+      "files": [
+        {
+          "path": "LICENSE",
+          "size": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "tokens.txt",
+          "size": 687,
+          "sha256": "6ebb6bb288f20f3ae8d004d3c2ca27697da27c037d75e81a60e2a6a663f95425"
+        },
+        {
+          "path": "lexicon-us-en.txt",
+          "size": 5956885,
+          "sha256": "7daaab53a181be9885b853a8582bf1838186317e5dadacbcef9c426d6fa0da14"
+        },
+        {
+          "path": "lexicon-gb-en.txt",
+          "size": 6366635,
+          "sha256": "c4cbb37316f62210dff52718a7afcaae24f50c032cc75ab47ae67b831d1049e7"
+        },
+        {
+          "path": "espeak-ng-data/intonations",
+          "size": 2040,
+          "sha256": "3f8af65fd3eda9759a10f021d61361c120871f463515229c925995c7f90918cc"
+        },
+        {
+          "path": "espeak-ng-data/phondata",
+          "size": 550424,
+          "sha256": "4e0288957874029a8c3c9f41a8f517ad4bf18127046decbdd4b9d1d6807ce3a3"
+        },
+        {
+          "path": "espeak-ng-data/phonindex",
+          "size": 39074,
+          "sha256": "3ca7b8fa3b42624e4b0f152707e7a39245fce569aa99ea47c055d9e622fcf0c4"
+        },
+        {
+          "path": "espeak-ng-data/phontab",
+          "size": 55796,
+          "sha256": "886f3fa402cb0ba73d483aa8ad000af47a6b7cc06293c75a97913fba68a530f6"
+        },
+        {
+          "path": "espeak-ng-data/en_dict",
+          "size": 166944,
+          "sha256": "71bd330ba8a2e3e8076e631508208ef49449d6147c17b7bd2b4b1e1468292e35"
+        },
+        {
+          "path": "espeak-ng-data/es_dict",
+          "size": 49252,
+          "sha256": "3fa93e251eab80838a2d6207ee58c9c847270a65fe3fae98850e0185b5a2186c"
+        },
+        {
+          "path": "espeak-ng-data/fr_dict",
+          "size": 63727,
+          "sha256": "e399ab924c4d10beef1fc310b30ea56e4ddfd8b4b64b8ed978e9c65394d49b2d"
+        },
+        {
+          "path": "espeak-ng-data/hi_dict",
+          "size": 92143,
+          "sha256": "5a68c9532624e57ac845b26ce1e2e5034c4f6353bede46ecbe57e583ec8effd6"
+        },
+        {
+          "path": "espeak-ng-data/it_dict",
+          "size": 152889,
+          "sha256": "111f968359c9ebe36b107a2565ba9f258bab337d3cbe37e44871980a8f21ce6b"
+        },
+        {
+          "path": "espeak-ng-data/pt_dict",
+          "size": 67817,
+          "sha256": "7e8398f15fa4a21db39a213381f28ec0d302b22663c644e865abb61a09c1b004"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en",
+          "size": 140,
+          "sha256": "4605d5330801de3641c6e366d15f129ea1f5ffbce8722642aba01ace07ab9c83"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-029",
+          "size": 335,
+          "sha256": "faeb8cb201056775f733acbd908c66555fe57bf01cb063920f178f389cbf85d3"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-scotland",
+          "size": 295,
+          "sha256": "1ce4282c1f4385dbaf0035e799b2ab1ee9e9a3ab4829100594a3047727b52353"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-gbclan",
+          "size": 238,
+          "sha256": "2040e176f1f7f27bdce81c32d7e2b1662449d54d264afd3c0ed871b8e42b6e46"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-gbcwmd",
+          "size": 188,
+          "sha256": "927a5ab891c65b30b4426b151d1623a01024f6b773a38497ba1c90cd77a95747"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-rp",
+          "size": 249,
+          "sha256": "d0625af7f58561b1b8cf96fd7f93eee6553bcb3eadb9020ae0757bf96e5115e5"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-US",
+          "size": 257,
+          "sha256": "41534c2a22df5dd4f1052ff9e1a33a3ea7bff5a26b5c02bdad5ba8ddb7524704"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-US-nyc",
+          "size": 271,
+          "sha256": "e8ee9168376d1f7d9e7dcda7c4644c36c529a8bea816e6380895364db46ea2e3"
+        },
+        {
+          "path": "espeak-ng-data/lang/inc/hi",
+          "size": 23,
+          "sha256": "3c1c3f916f57f2d6d6cbf7923c0f39a36ac2140e2a69ddffce917d7b8bf3ccab"
+        },
+        {
+          "path": "espeak-ng-data/lang/roa/es",
+          "size": 63,
+          "sha256": "966aa015ea5646d79f0ca4807cf5da7339aabd3782b55cfa5eb0d8c3fc8fc588"
+        },
+        {
+          "path": "espeak-ng-data/lang/roa/fr",
+          "size": 79,
+          "sha256": "95f44834b48c075dad13eace54d2c98ff79b81aa0074dd67eebaf66c2909eef8"
+        },
+        {
+          "path": "espeak-ng-data/lang/roa/it",
+          "size": 109,
+          "sha256": "0d9069eb9a96db1c55c131b2bb7d1f5255c68fbddc2199ffd3295b52519a3256"
+        },
+        {
+          "path": "espeak-ng-data/lang/roa/pt",
+          "size": 95,
+          "sha256": "a44060072f790e41912c57b7d52f7b6438c4383e0dabdb052f6fdb7aacc23493"
+        },
+        {
+          "path": "espeak-ng-data/lang/roa/pt-BR",
+          "size": 109,
+          "sha256": "84dd4e34c970fadbe32211eadecfdfaab52432479c0911e43300da88a33398ba"
+        },
+        {
+          "path": "voices.bin",
+          "size": 28200960,
+          "sha256": "1c5a5b983d3d50d8586d437a51f3faa2da7919ce76a013c081e65671a3447c29"
+        },
+        {
+          "path": "model.onnx",
+          "size": 325560556,
+          "sha256": "b40f62b166ac8164b0627ef48a0b358eda0985e272fb03ef5252e7206305da11"
+        }
+      ]
+    },
+    {
+      "id": "supertonic-3",
+      "kind": "voice",
+      "name": "Supertonic 3",
+      "author": "Supertone",
+      "released": "2026-04-29",
+      "licence": "OpenRAIL-M",
+      "restricted": true,
+      "parameters": "99M",
+      "precision": "8-bit",
+      "languages": [
+        "en",
+        "ar",
+        "bg",
+        "cs",
+        "da",
+        "de",
+        "el",
+        "es",
+        "et",
+        "fi",
+        "fr",
+        "hi",
+        "hr",
+        "hu",
+        "id",
+        "it",
+        "ja",
+        "ko",
+        "lt",
+        "lv",
+        "nl",
+        "pl",
+        "pt",
+        "ro",
+        "ru",
+        "sk",
+        "sl",
+        "sv",
+        "tr",
+        "uk",
+        "vi"
+      ],
+      "voice": {
+        "family": "supertonic",
+        "file": ""
+      },
+      "recommendedMemory": 4294967296,
+      "pageUrl": "https://huggingface.co/Supertone/supertonic-3",
+      "sources": [
+        "https://huggingface.co/csukuangfj2/sherpa-onnx-supertonic-3-tts-int8-2026-05-11/resolve/cca5a0e6c96e1d2c720986bf7e75fcc81dee3ae4/"
+      ],
+      "files": [
+        {
+          "path": "duration_predictor.int8.onnx",
+          "size": 3700147,
+          "sha256": "c3eb91414d5ff8a7a239b7fe9e34e7e2bf8a8140d8375ffb14718b1c639325db"
+        },
+        {
+          "path": "text_encoder.int8.onnx",
+          "size": 36416150,
+          "sha256": "c7befd5ea8c3119769e8a6c1486c4edc6a3bc8365c67621c881bbb774b9902ff"
+        },
+        {
+          "path": "tts.json",
+          "size": 8253,
+          "sha256": "42078d3aef1cd43ab43021f3c54f47d2d75ceb4e75f627f118890128b06a0d09"
+        },
+        {
+          "path": "unicode_indexer.bin",
+          "size": 262144,
+          "sha256": "8402ca48e5189a8950138580b0fff64db6f072f24ac07cd54ba8b2fbb9883b30"
+        },
+        {
+          "path": "vector_estimator.int8.onnx",
+          "size": 78400833,
+          "sha256": "20cd86fa5c6effedfda0e7cffe5b0569ca401c440a0c3a1d72bf39286c0db3fd"
+        },
+        {
+          "path": "vocoder.int8.onnx",
+          "size": 25991073,
+          "sha256": "e923d60f53f95eb1ce235f1dc33ec56d9c057823c96fa6f8acf98f32b0da6152"
+        },
+        {
+          "path": "voice.bin",
+          "size": 517168,
+          "sha256": "67d5209b0ee8ce6c74105ffbe12fe6a7628aea3b4ba2fcb308a4a67938a93ce8"
+        }
+      ]
+    },
+    {
+      "id": "kitten-mini",
+      "kind": "voice",
+      "name": "Kitten Mini 0.8",
+      "author": "KittenML",
+      "released": "2026-02-19",
+      "licence": "Apache-2.0",
+      "restricted": false,
+      "languages": [
+        "en-us"
+      ],
+      "recommendedMemory": 4294967296,
+      "parameters": "80M",
+      "precision": "Mixed",
+      "voice": {
+        "family": "kitten",
+        "file": "model.onnx"
+      },
+      "pageUrl": "https://huggingface.co/KittenML/kitten-tts-mini-0.8",
+      "sources": [
+        "https://huggingface.co/csukuangfj2/kitten-mini-en-v0_8/resolve/5e67e1579d5119f606e95632a4852b6af936e765/"
+      ],
+      "files": [
+        {
+          "path": "LICENSE",
+          "size": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "tokens.txt",
+          "size": 1064,
+          "sha256": "934a4188addc7665dd3410256bb622169242357fbb99d840d9351209b486dabb"
+        },
+        {
+          "path": "espeak-ng-data/intonations",
+          "size": 2040,
+          "sha256": "3f8af65fd3eda9759a10f021d61361c120871f463515229c925995c7f90918cc"
+        },
+        {
+          "path": "espeak-ng-data/phondata",
+          "size": 550424,
+          "sha256": "4e0288957874029a8c3c9f41a8f517ad4bf18127046decbdd4b9d1d6807ce3a3"
+        },
+        {
+          "path": "espeak-ng-data/phonindex",
+          "size": 39074,
+          "sha256": "3ca7b8fa3b42624e4b0f152707e7a39245fce569aa99ea47c055d9e622fcf0c4"
+        },
+        {
+          "path": "espeak-ng-data/phontab",
+          "size": 55796,
+          "sha256": "886f3fa402cb0ba73d483aa8ad000af47a6b7cc06293c75a97913fba68a530f6"
+        },
+        {
+          "path": "espeak-ng-data/en_dict",
+          "size": 166944,
+          "sha256": "71bd330ba8a2e3e8076e631508208ef49449d6147c17b7bd2b4b1e1468292e35"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en",
+          "size": 140,
+          "sha256": "4605d5330801de3641c6e366d15f129ea1f5ffbce8722642aba01ace07ab9c83"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-029",
+          "size": 335,
+          "sha256": "faeb8cb201056775f733acbd908c66555fe57bf01cb063920f178f389cbf85d3"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-scotland",
+          "size": 295,
+          "sha256": "1ce4282c1f4385dbaf0035e799b2ab1ee9e9a3ab4829100594a3047727b52353"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-gbclan",
+          "size": 238,
+          "sha256": "2040e176f1f7f27bdce81c32d7e2b1662449d54d264afd3c0ed871b8e42b6e46"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-gbcwmd",
+          "size": 188,
+          "sha256": "927a5ab891c65b30b4426b151d1623a01024f6b773a38497ba1c90cd77a95747"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-rp",
+          "size": 249,
+          "sha256": "d0625af7f58561b1b8cf96fd7f93eee6553bcb3eadb9020ae0757bf96e5115e5"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-US",
+          "size": 257,
+          "sha256": "41534c2a22df5dd4f1052ff9e1a33a3ea7bff5a26b5c02bdad5ba8ddb7524704"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-US-nyc",
+          "size": 271,
+          "sha256": "e8ee9168376d1f7d9e7dcda7c4644c36c529a8bea816e6380895364db46ea2e3"
+        },
+        {
+          "path": "voices.bin",
+          "size": 3276800,
+          "sha256": "0e4965b46333db53ce09c73842623bf7055ea62c67f78803cb7ea9c16da6ac2b"
+        },
+        {
+          "path": "model.onnx",
+          "size": 78268913,
+          "sha256": "d2ba2913a135bf255840c053f6c77d23f735337992f3258cc238caf404e1949c"
+        }
+      ]
+    },
+    {
+      "id": "kitten-micro",
+      "kind": "voice",
+      "name": "Kitten Micro 0.8",
+      "author": "KittenML",
+      "released": "2026-02-19",
+      "licence": "Apache-2.0",
+      "restricted": false,
+      "languages": [
+        "en-us"
+      ],
+      "recommendedMemory": 4294967296,
+      "parameters": "40M",
+      "precision": "Mixed",
+      "voice": {
+        "family": "kitten",
+        "file": "model.onnx"
+      },
+      "pageUrl": "https://huggingface.co/KittenML/kitten-tts-micro-0.8",
+      "sources": [
+        "https://huggingface.co/csukuangfj2/kitten-micro-en-v0_8/resolve/7131b31e5fbe7da21e32f84899d1d273a1477e15/"
+      ],
+      "files": [
+        {
+          "path": "LICENSE",
+          "size": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "tokens.txt",
+          "size": 1064,
+          "sha256": "934a4188addc7665dd3410256bb622169242357fbb99d840d9351209b486dabb"
+        },
+        {
+          "path": "espeak-ng-data/intonations",
+          "size": 2040,
+          "sha256": "3f8af65fd3eda9759a10f021d61361c120871f463515229c925995c7f90918cc"
+        },
+        {
+          "path": "espeak-ng-data/phondata",
+          "size": 550424,
+          "sha256": "4e0288957874029a8c3c9f41a8f517ad4bf18127046decbdd4b9d1d6807ce3a3"
+        },
+        {
+          "path": "espeak-ng-data/phonindex",
+          "size": 39074,
+          "sha256": "3ca7b8fa3b42624e4b0f152707e7a39245fce569aa99ea47c055d9e622fcf0c4"
+        },
+        {
+          "path": "espeak-ng-data/phontab",
+          "size": 55796,
+          "sha256": "886f3fa402cb0ba73d483aa8ad000af47a6b7cc06293c75a97913fba68a530f6"
+        },
+        {
+          "path": "espeak-ng-data/en_dict",
+          "size": 166944,
+          "sha256": "71bd330ba8a2e3e8076e631508208ef49449d6147c17b7bd2b4b1e1468292e35"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en",
+          "size": 140,
+          "sha256": "4605d5330801de3641c6e366d15f129ea1f5ffbce8722642aba01ace07ab9c83"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-029",
+          "size": 335,
+          "sha256": "faeb8cb201056775f733acbd908c66555fe57bf01cb063920f178f389cbf85d3"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-scotland",
+          "size": 295,
+          "sha256": "1ce4282c1f4385dbaf0035e799b2ab1ee9e9a3ab4829100594a3047727b52353"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-gbclan",
+          "size": 238,
+          "sha256": "2040e176f1f7f27bdce81c32d7e2b1662449d54d264afd3c0ed871b8e42b6e46"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-gbcwmd",
+          "size": 188,
+          "sha256": "927a5ab891c65b30b4426b151d1623a01024f6b773a38497ba1c90cd77a95747"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-rp",
+          "size": 249,
+          "sha256": "d0625af7f58561b1b8cf96fd7f93eee6553bcb3eadb9020ae0757bf96e5115e5"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-US",
+          "size": 257,
+          "sha256": "41534c2a22df5dd4f1052ff9e1a33a3ea7bff5a26b5c02bdad5ba8ddb7524704"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-US-nyc",
+          "size": 271,
+          "sha256": "e8ee9168376d1f7d9e7dcda7c4644c36c529a8bea816e6380895364db46ea2e3"
+        },
+        {
+          "path": "voices.bin",
+          "size": 3276800,
+          "sha256": "12ad10f1fcce8a458b5cf79769b8edd4ba0e11e9fb6532fd192c3500b2b37a5d"
+        },
+        {
+          "path": "model.onnx",
+          "size": 41385869,
+          "sha256": "7cf07fcc77f3823c55fc9fb49594cfa421861a6eee9d63640cce708a174103f8"
+        }
+      ]
+    },
+    {
+      "id": "kitten-nano",
+      "kind": "voice",
+      "name": "Kitten Nano 0.8",
+      "author": "KittenML",
+      "released": "2026-02-19",
+      "licence": "Apache-2.0",
+      "restricted": false,
+      "languages": [
+        "en-us"
+      ],
+      "recommendedMemory": 4294967296,
+      "parameters": "15M",
+      "precision": "32-bit",
+      "voice": {
+        "family": "kitten",
+        "file": "model.fp32.onnx"
+      },
+      "pageUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.8-fp32",
+      "sources": [
+        "https://huggingface.co/csukuangfj2/kitten-nano-en-v0_8-fp32/resolve/eb4fe4f70801b2eb1c3f45be046ccd553c7575e7/"
+      ],
+      "files": [
+        {
+          "path": "LICENSE",
+          "size": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "tokens.txt",
+          "size": 1064,
+          "sha256": "934a4188addc7665dd3410256bb622169242357fbb99d840d9351209b486dabb"
+        },
+        {
+          "path": "espeak-ng-data/intonations",
+          "size": 2040,
+          "sha256": "3f8af65fd3eda9759a10f021d61361c120871f463515229c925995c7f90918cc"
+        },
+        {
+          "path": "espeak-ng-data/phondata",
+          "size": 550424,
+          "sha256": "4e0288957874029a8c3c9f41a8f517ad4bf18127046decbdd4b9d1d6807ce3a3"
+        },
+        {
+          "path": "espeak-ng-data/phonindex",
+          "size": 39074,
+          "sha256": "3ca7b8fa3b42624e4b0f152707e7a39245fce569aa99ea47c055d9e622fcf0c4"
+        },
+        {
+          "path": "espeak-ng-data/phontab",
+          "size": 55796,
+          "sha256": "886f3fa402cb0ba73d483aa8ad000af47a6b7cc06293c75a97913fba68a530f6"
+        },
+        {
+          "path": "espeak-ng-data/en_dict",
+          "size": 166944,
+          "sha256": "71bd330ba8a2e3e8076e631508208ef49449d6147c17b7bd2b4b1e1468292e35"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en",
+          "size": 140,
+          "sha256": "4605d5330801de3641c6e366d15f129ea1f5ffbce8722642aba01ace07ab9c83"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-029",
+          "size": 335,
+          "sha256": "faeb8cb201056775f733acbd908c66555fe57bf01cb063920f178f389cbf85d3"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-scotland",
+          "size": 295,
+          "sha256": "1ce4282c1f4385dbaf0035e799b2ab1ee9e9a3ab4829100594a3047727b52353"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-gbclan",
+          "size": 238,
+          "sha256": "2040e176f1f7f27bdce81c32d7e2b1662449d54d264afd3c0ed871b8e42b6e46"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-gbcwmd",
+          "size": 188,
+          "sha256": "927a5ab891c65b30b4426b151d1623a01024f6b773a38497ba1c90cd77a95747"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-GB-x-rp",
+          "size": 249,
+          "sha256": "d0625af7f58561b1b8cf96fd7f93eee6553bcb3eadb9020ae0757bf96e5115e5"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-US",
+          "size": 257,
+          "sha256": "41534c2a22df5dd4f1052ff9e1a33a3ea7bff5a26b5c02bdad5ba8ddb7524704"
+        },
+        {
+          "path": "espeak-ng-data/lang/gmw/en-US-nyc",
+          "size": 271,
+          "sha256": "e8ee9168376d1f7d9e7dcda7c4644c36c529a8bea816e6380895364db46ea2e3"
+        },
+        {
+          "path": "voices.bin",
+          "size": 3276800,
+          "sha256": "d520519c4a3519d44fcfcd943ed0b1e3c5da5cee0eea501d922fac1a93cd24dc"
+        },
+        {
+          "path": "model.fp32.onnx",
+          "size": 56768002,
+          "sha256": "2174dbf67b58b7b50d7b65294f89c2c53c172834533519b853c579879a04cc22"
+        }
+      ]
+    },
+    {
+      "id": "pocket-tts",
+      "kind": "voice",
+      "name": "Pocket TTS",
+      "author": "Kyutai",
+      "released": "2026-01-13",
+      "licence": "CC-BY-4.0",
+      "restricted": true,
+      "parameters": "100M",
+      "precision": "8-bit",
+      "languages": [
+        "en-us"
+      ],
+      "voice": {
+        "family": "pocket",
+        "file": ""
+      },
+      "recommendedMemory": 4294967296,
+      "pageUrl": "https://huggingface.co/kyutai/pocket-tts",
+      "sources": [
+        "https://huggingface.co/csukuangfj2/sherpa-onnx-pocket-tts-int8-2026-01-26/resolve/4145e1e8ec6c81dc73a28641c6ab031ab57ea5b3/"
+      ],
+      "files": [
+        {
+          "path": "LICENSE",
+          "size": 18655,
+          "sha256": "fe7b4ce83b8381cc5b216bbb4af73c570688d1b819c73bbaed8ca401f4677cd6"
+        },
+        {
+          "path": "decoder.int8.onnx",
+          "size": 22693618,
+          "sha256": "12b0857402d31aead94df19d6783b4350d1f740e811f3a3202c70ad89ae11eea"
+        },
+        {
+          "path": "encoder.onnx",
+          "size": 72713165,
+          "sha256": "e8f2f6d301ffb96e398b138a7dc6d3038622d236044636b73d920bab85890260"
+        },
+        {
+          "path": "lm_flow.int8.onnx",
+          "size": 9962530,
+          "sha256": "8d627d235c44a597da908e1085ebe241cbbe358964c502c5a5063d18851a5529"
+        },
+        {
+          "path": "lm_main.int8.onnx",
+          "size": 76341079,
+          "sha256": "bfc0c7e7e3d72864fa3bb2ee499f62f21ddc1474b885f5f3ca570f8be73e787e"
+        },
+        {
+          "path": "text_conditioner.onnx",
+          "size": 16388343,
+          "sha256": "0b84e837d7bfaf2c896627b03e3f080320309f37f4fc7df7698c644f7ba5e6b1"
+        },
+        {
+          "path": "token_scores.json",
+          "size": 123616,
+          "sha256": "5be2f278caf9b9800741f0fd82bff677f4943ec764c356f907213434b622d958"
+        },
+        {
+          "path": "vocab.json",
+          "size": 69478,
+          "sha256": "6fb646346cf931016f70c4921aab0900ce7a304b893cb02135c74e294abfea01"
+        }
+      ]
+    },
+    {
+      "kind": "music",
+      "author": "ACE-Step",
+      "licence": "MIT",
+      "restricted": false,
+      "languages": [],
+      "id": "music",
+      "name": "ACE-Step 1.5 Turbo",
+      "released": "2026-01-23",
+      "parameters": "2B",
+      "precision": "4-bit",
+      "recommendedMemory": 8589934592,
+      "music": {
+        "lm": "acestep-5Hz-lm-0.6B-Q8_0.gguf",
+        "dit": "acestep-v15-turbo-Q4_K_M.gguf",
+        "steps": 8,
+        "guidance": false,
+        "graphicsMemory": 3758096384
+      },
+      "pageUrl": "https://huggingface.co/ACE-Step/Ace-Step1.5",
+      "sources": [
+        "https://huggingface.co/Serveurperso/ACE-Step-1.5-GGUF/resolve/666ac70204440867d8c01ba4b119cc79c95b370a/"
+      ],
+      "files": [
+        {
+          "path": "LICENSE",
+          "size": 1064,
+          "sha256": "05a6bce42a62636d2cfb24139cc008b6b899754e244175814bb5dd2f4a485357"
+        },
+        {
+          "path": "vae-BF16.gguf",
+          "size": 337420928,
+          "sha256": "0599862ac5d15cd308e1d2e368373aea6c02e25ebd1737ad4a4562a0901b0ef8"
+        },
+        {
+          "path": "acestep-5Hz-lm-0.6B-Q8_0.gguf",
+          "size": 709846656,
+          "sha256": "bdaf9e292d4470f31c19cafeaca1b74936a114667e3a85e5d33b65247e9908ec"
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B-Q8_0.gguf",
+          "size": 784144960,
+          "sha256": "972f23255e46adfe744a0eb9a0039f3c63988f65753b0968d776e8b27168c321"
+        },
+        {
+          "path": "acestep-v15-turbo-Q4_K_M.gguf",
+          "size": 1445710272,
+          "sha256": "55b4d8514850f3d0f82536f37e99673aaf48df802b5ae5b153eea32a2e2daa5e"
+        }
+      ]
+    },
+    {
+      "kind": "music",
+      "author": "ACE-Step",
+      "licence": "MIT",
+      "restricted": false,
+      "languages": [],
+      "id": "ace-step-turbo-hq",
+      "name": "ACE-Step 1.5 Turbo HQ",
+      "released": "2026-01-23",
+      "parameters": "2B",
+      "precision": "8-bit",
+      "recommendedMemory": 12884901888,
+      "music": {
+        "lm": "acestep-5Hz-lm-1.7B-Q8_0.gguf",
+        "dit": "acestep-v15-turbo-Q8_0.gguf",
+        "steps": 8,
+        "guidance": false,
+        "graphicsMemory": 5905580032
+      },
+      "pageUrl": "https://huggingface.co/ACE-Step/Ace-Step1.5",
+      "sources": [
+        "https://huggingface.co/Serveurperso/ACE-Step-1.5-GGUF/resolve/666ac70204440867d8c01ba4b119cc79c95b370a/"
+      ],
+      "files": [
+        {
+          "path": "LICENSE",
+          "size": 1064,
+          "sha256": "05a6bce42a62636d2cfb24139cc008b6b899754e244175814bb5dd2f4a485357"
+        },
+        {
+          "path": "vae-BF16.gguf",
+          "size": 337420928,
+          "sha256": "0599862ac5d15cd308e1d2e368373aea6c02e25ebd1737ad4a4562a0901b0ef8"
+        },
+        {
+          "path": "acestep-5Hz-lm-1.7B-Q8_0.gguf",
+          "size": 1975837568,
+          "sha256": "726f99a82f050b32ebc5c5e36acaa9d7acd06bfe5e579a62b00e0d0d6d0b7ec6"
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B-Q8_0.gguf",
+          "size": 784144960,
+          "sha256": "972f23255e46adfe744a0eb9a0039f3c63988f65753b0968d776e8b27168c321"
+        },
+        {
+          "path": "acestep-v15-turbo-Q8_0.gguf",
+          "size": 2549528000,
+          "sha256": "288f708a61cfc241013a98a62f98ba331f83fe34d0d3559acdd9b0f6a2f7cd6b"
+        }
+      ]
+    },
+    {
+      "kind": "music",
+      "author": "ACE-Step",
+      "licence": "MIT",
+      "restricted": false,
+      "languages": [],
+      "id": "ace-step-sft",
+      "name": "ACE-Step 1.5 SFT",
+      "released": "2026-01-23",
+      "parameters": "2B",
+      "precision": "4-bit",
+      "recommendedMemory": 8589934592,
+      "music": {
+        "lm": "acestep-5Hz-lm-0.6B-Q8_0.gguf",
+        "dit": "acestep-v15-sft-Q4_K_M.gguf",
+        "steps": 50,
+        "guidance": true,
+        "graphicsMemory": 3758096384
+      },
+      "pageUrl": "https://huggingface.co/ACE-Step/acestep-v15-sft",
+      "sources": [
+        "https://huggingface.co/Serveurperso/ACE-Step-1.5-GGUF/resolve/666ac70204440867d8c01ba4b119cc79c95b370a/"
+      ],
+      "files": [
+        {
+          "path": "LICENSE",
+          "size": 1064,
+          "sha256": "05a6bce42a62636d2cfb24139cc008b6b899754e244175814bb5dd2f4a485357"
+        },
+        {
+          "path": "vae-BF16.gguf",
+          "size": 337420928,
+          "sha256": "0599862ac5d15cd308e1d2e368373aea6c02e25ebd1737ad4a4562a0901b0ef8"
+        },
+        {
+          "path": "acestep-5Hz-lm-0.6B-Q8_0.gguf",
+          "size": 709846656,
+          "sha256": "bdaf9e292d4470f31c19cafeaca1b74936a114667e3a85e5d33b65247e9908ec"
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B-Q8_0.gguf",
+          "size": 784144960,
+          "sha256": "972f23255e46adfe744a0eb9a0039f3c63988f65753b0968d776e8b27168c321"
+        },
+        {
+          "path": "acestep-v15-sft-Q4_K_M.gguf",
+          "size": 1445710208,
+          "sha256": "2531bb61b9e5017fbc8875446e02f54b052eeec41ba3200dd72c6061b59b33d0"
+        }
+      ]
+    },
+    {
+      "kind": "music",
+      "author": "ACE-Step",
+      "licence": "MIT",
+      "restricted": false,
+      "languages": [],
+      "id": "ace-step-xl",
+      "name": "ACE-Step 1.5 XL Turbo",
+      "released": "2026-04-02",
+      "parameters": "4B",
+      "precision": "4-bit",
+      "recommendedMemory": 12884901888,
+      "music": {
+        "lm": "acestep-5Hz-lm-1.7B-Q8_0.gguf",
+        "dit": "acestep-v15-xl-turbo-Q4_K_M.gguf",
+        "steps": 8,
+        "guidance": false,
+        "graphicsMemory": 5905580032
+      },
+      "pageUrl": "https://huggingface.co/ACE-Step/acestep-v15-xl-turbo",
+      "sources": [
+        "https://huggingface.co/Serveurperso/ACE-Step-1.5-GGUF/resolve/666ac70204440867d8c01ba4b119cc79c95b370a/"
+      ],
+      "files": [
+        {
+          "path": "LICENSE",
+          "size": 1064,
+          "sha256": "05a6bce42a62636d2cfb24139cc008b6b899754e244175814bb5dd2f4a485357"
+        },
+        {
+          "path": "vae-BF16.gguf",
+          "size": 337420928,
+          "sha256": "0599862ac5d15cd308e1d2e368373aea6c02e25ebd1737ad4a4562a0901b0ef8"
+        },
+        {
+          "path": "acestep-5Hz-lm-1.7B-Q8_0.gguf",
+          "size": 1975837568,
+          "sha256": "726f99a82f050b32ebc5c5e36acaa9d7acd06bfe5e579a62b00e0d0d6d0b7ec6"
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B-Q8_0.gguf",
+          "size": 784144960,
+          "sha256": "972f23255e46adfe744a0eb9a0039f3c63988f65753b0968d776e8b27168c321"
+        },
+        {
+          "path": "acestep-v15-xl-turbo-Q4_K_M.gguf",
+          "size": 2989922688,
+          "sha256": "475e60e8644b1f91eebc0cd25f24c060bed06e64a862b4e60ffafe634c740478"
+        }
+      ]
+    }
+  ]
+}
