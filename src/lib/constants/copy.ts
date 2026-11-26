@@ -114,6 +114,9 @@ export const COPY = {
     deleteTitle: "Delete recording?",
     deleteDescription: "This can't be undone.",
     keep: "Keep",
+    filter: "Show",
+    filters: { all: "All", voice: "Voice", music: "Music", mix: "Mix" },
+    noneOfKind: "Nothing here yet.",
     details: (kind: string, length: string, date: string) => `${kind} · ${length} · ${date}`,
     errors: {
       missing: "Relink this recording to continue.",
@@ -268,6 +271,11 @@ export const COPY = {
     relink: "Relink",
     restore: "Restore Default",
   },
+  saveFolder: {
+    folder: "Recordings folder",
+    description: "New voice, music and mixes are saved here. Earlier recordings stay where they are.",
+    unavailable: "Reconnect the drive or choose another folder.",
+  },
   system: {
     title: "Your computer",
     memory: "Memory",
@@ -278,8 +286,37 @@ export const COPY = {
     unknown: "–",
   },
   about: {
-    privacy: "Your scripts and recordings stay on your device.",
     licence: "Free and open source under GPL-3.0.",
+    version: (version: string) => `Version ${version}`,
+    promises: [
+      { title: "Private", text: "Your scripts and recordings never leave your computer." },
+      { title: "Offline", text: "Works without the internet once a model is downloaded." },
+      { title: "Free", text: "No subscription, no ads and no tracking." },
+    ],
+    me: {
+      eyebrow: "A little about me",
+      title: "Hi, I'm Akhil.",
+      subtitle: "I make small apps because I'm curious about what's possible.",
+      paragraphs: [
+        "I create a lot of little tools, some just for fun, some to solve a small problem, and some to see how far I can push an idea. I believe the best way to learn is to build, so I'm almost always coding, experimenting and making something.",
+        "VoxMelody started as a tool I wanted for myself: voices and music made on my own computer, without uploads or subscriptions. I decided to put it out there so anyone can use it too. My goal is to keep it free for as long as I can.",
+      ],
+      photo: "Akhil",
+    },
+    support: {
+      title: "If VoxMelody helped you create something",
+      text: "A small contribution helps keep it free and gives me room to keep building.",
+      action: "Buy me a coffee",
+    },
+    why: {
+      title: "Why I keep building",
+      paragraphs: [
+        "I learn most by doing. A lot of mistakes happen while building these tools, but every bug and unexpected challenge teaches me something I wouldn't have learned otherwise.",
+        "If you have an idea you want to build, don't hold back. Start building it. You'll learn as you go, and by the time you're done, you'll have something more valuable than the idea you started with: experience.",
+      ],
+    },
+    follow: "Follow me",
+    followOn: (network: string) => `Follow Akhil on ${network}`,
   },
   window: { minimize: "Minimize", maximize: "Maximize", close: "Close" },
 } as const;

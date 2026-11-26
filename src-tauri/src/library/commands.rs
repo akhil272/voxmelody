@@ -5,7 +5,7 @@ use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, FilePath};
 
 use super::error::LibraryError;
-use super::store::{Kind, Library, NewRecording, Recording};
+use super::store::{Kind, Library, NewRecording, Recording, SaveFolder};
 use crate::audio::wav;
 use crate::takes::Take;
 
@@ -126,4 +126,27 @@ pub async fn relink_recording(app: AppHandle, library: State<'_, Library>, id: u
   let Some(path) = choose(&app, |dialog, done| dialog.pick_file(done)).await? else { return Ok(false) };
   run(&library, move |library| library.relink(id, &path)).await?;
   Ok(true)
+}
+
+#[tauri::command]
+pub async fn save_folder(library: State<'_, Library>) -> Result<SaveFolder, LibraryError> {
+  run(&library, |library| Ok(library.save_folder())).await
+}
+
+/// Returns false when the user closes the folder picker. The path comes from the picker, never from the page.
+#[tauri::command]
+pub async fn change_save_folder(app: AppHandle, library: State<'_, Library>) -> Result<bool, LibraryError> {
+  let (sender, receiver) = tokio::sync::oneshot::channel();
+  app.dialog().file().pick_folder(move |folder| {
+    let _ = sender.send(folder);
+  });
+  let Ok(Some(folder)) = receiver.await else { return Ok(false) };
+  let folder = folder.into_path().map_err(|_| LibraryError::Storage)?;
+  run(&library, move |library| library.set_save_folder(Some(&folder))).await?;
+  Ok(true)
+}
+
+#[tauri::command]
+pub async fn restore_save_folder(library: State<'_, Library>) -> Result<(), LibraryError> {
+  run(&library, |library| library.set_save_folder(None)).await
 }

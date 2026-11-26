@@ -14,3 +14,12 @@ export interface Recording {
   cloned: boolean;
   available: boolean;
 }
+
+export type LibraryFilter = "all" | "voice" | "music" | "mix";
+
+export interface SaveFolder {
+  path: string;
+  isDefault: boolean;
+  /** False when the chosen folder cannot be reached. */
+  available: boolean;
+}

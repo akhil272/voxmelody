@@ -19,6 +19,7 @@ pub fn run() {
   }
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
+    .plugin(tauri_plugin_opener::init())
     .setup(move |app| {
       // The log uses stdout, which belongs to the assistant.
       if cfg!(debug_assertions) && !assistant {
@@ -72,6 +73,9 @@ pub fn run() {
       library::commands::delete_recording,
       library::commands::export_recording,
       library::commands::relink_recording,
+      library::commands::save_folder,
+      library::commands::change_save_folder,
+      library::commands::restore_save_folder,
     ])
     .run(context)
     .expect("error while building tauri application");

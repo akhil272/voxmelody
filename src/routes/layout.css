@@ -40,7 +40,7 @@
   --color-border: var(--border);
   --color-input: var(--border);
   --color-ring: var(--primary);
-  --color-teal-bright: var(--teal-bright);
+  --color-violet-bright: var(--violet-bright);
   --color-cobalt-bright: var(--cobalt-bright);
 
   --radius-sm: 6px;
@@ -53,19 +53,19 @@
   --background: #f7faff;
   --foreground: #0f172a;
   --card: #ffffff;
-  --primary: #0f766e;
-  --primary-hover: #0b5f59;
+  --primary: #5d20e1;
+  --primary-hover: #4a18b8;
   --secondary: #1d4edb;
   --secondary-hover: #173fb3;
   --on-brand: #ffffff;
   --muted: #eef2f9;
   --muted-foreground: #64748b;
-  --accent: #e6f4f2;
+  --accent: #efe9fd;
   --border: #dce3ef;
   --destructive: #b42318;
   --warning: #b45309;
   --warning-muted: #fef3c7;
-  --teal-bright: #14b8a6;
+  --violet-bright: #8b5cf6;
   --cobalt-bright: #4f7df3;
 }
 
