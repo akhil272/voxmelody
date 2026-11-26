@@ -1,4 +1,4 @@
-# Builds unsigned macOS disk images, one per processor, on native runners.
+# Builds an unsigned macOS disk image for Apple silicon.
 # A local release script downloads them and publishes them with the Windows installer.
 name: macOS
 
@@ -16,15 +16,7 @@ concurrency:
 
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-15
-            arch: aarch64
-          - runner: macos-15-intel
-            arch: x64
-    runs-on: ${{ matrix.runner }}
+    runs-on: macos-15
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +40,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: engines/music/.build
-          key: music-${{ matrix.arch }}-${{ hashFiles('engines/music/CMakeLists.txt', 'engines/music/src/**') }}
+          key: music-aarch64-${{ hashFiles('engines/music/CMakeLists.txt', 'engines/music/src/**') }}
 
       - name: Install Ninja
         run: brew install ninja
@@ -61,7 +53,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: macos-${{ matrix.arch }}
+          name: macos-aarch64
           path: src-tauri/target/release/bundle/dmg/*.dmg
           if-no-files-found: error
           retention-days: 30
