@@ -9,7 +9,7 @@ export { decodeSample } from "./utils/sample.js";
 export { toAudioUrl } from "./utils/audio.js";
 export { toLibraryError } from "./utils/library-error.js";
 export { toMixError } from "./utils/mix-error.js";
-export { findRecording, toRecordingOptions } from "./utils/recordings.js";
+export { filterRecordings, findRecording, toRecordingOptions } from "./utils/recordings.js";
 export { toMusicError } from "./utils/music-error.js";
 export { countCharacters, toFileName } from "./utils/text.js";
 export { addSection, hasLyrics } from "./utils/lyrics.js";

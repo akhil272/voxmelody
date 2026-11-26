@@ -1,4 +1,4 @@
-export { MAX_TITLE_LENGTH } from "./constants/library.js";
+export { DEFAULT_LIBRARY_FILTER, FILTER_KINDS, LIBRARY_FILTERS, MAX_TITLE_LENGTH } from "./constants/library.js";
 export {
   CONSENT_OPTIONS,
   MAX_RECORDING_SECONDS,

@@ -11,8 +11,8 @@
   <svg viewBox="0 0 560 270" preserveAspectRatio="none" class="size-full" fill="none">
     <defs>
       <linearGradient id="vm-wave" gradientUnits="userSpaceOnUse" x1="0" x2="560">
-        <stop stop-color="var(--teal-bright)" stop-opacity="0" />
-        <stop offset="0.35" stop-color="var(--teal-bright)" />
+        <stop stop-color="var(--violet-bright)" stop-opacity="0" />
+        <stop offset="0.35" stop-color="var(--violet-bright)" />
         <stop offset="1" stop-color="var(--secondary)" />
       </linearGradient>
     </defs>

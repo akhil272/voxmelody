@@ -18,6 +18,7 @@ VoxMelody is licensed under GPL-3.0; see `LICENSE`. Source: https://github.com/a
 | shadcn-svelte, Bits UI | MIT | https://github.com/huntabyte/shadcn-svelte |
 | Lucide | ISC | https://github.com/lucide-icons/lucide |
 | Inter, Space Grotesk | OFL-1.1 | https://github.com/rsms/inter, https://github.com/floriankarsten/space-grotesk |
+| Simple Icons (X and LinkedIn marks) | CC0-1.0 | https://github.com/simple-icons/simple-icons |
 
 The voice engine (`voxmelody-voice`) statically links sherpa-onnx with eSpeak NG. Its complete source is in `engines/voice` and at the links above.
 
