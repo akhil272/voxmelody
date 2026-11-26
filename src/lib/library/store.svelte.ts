@@ -4,7 +4,7 @@ import { music } from "#lib/music/store.svelte.js";
 import { toLibraryError } from "#lib/utils.js";
 import { voice } from "#lib/voice/store.svelte.js";
 import * as api from "./api.js";
-import type { LibraryError, Recording } from "./types.js";
+import type { LibraryError, Recording, SaveFolder } from "./types.js";
 
 /** Something that happened to one recording. */
 interface Notice<T> {
@@ -19,6 +19,8 @@ class LibraryStore {
   error = $state<Notice<LibraryError> | null>(null);
   exportedId = $state<number | null>(null);
   loadError = $state<LibraryError | null>(null);
+  saveFolder = $state<SaveFolder | null>(null);
+  saveFolderError = $state<LibraryError | null>(null);
 
   voices = $derived(this.recordings.filter(({ kind, available }) => kind === "voice" && available));
   tracks = $derived(this.recordings.filter(({ kind, available }) => kind === "music" && available));
@@ -45,6 +47,35 @@ class LibraryStore {
     await this.#run(id, async () => {
       this.playing = { id, value: await api.loadRecording(id) };
     });
+  }
+
+  async loadSaveFolder() {
+    if (!isTauri()) return;
+    await this.#runFolder(async () => {
+      this.saveFolder = await api.readSaveFolder();
+    });
+  }
+
+  changeSaveFolder() {
+    return this.#runFolder(async () => {
+      if (await api.changeSaveFolder()) this.saveFolder = await api.readSaveFolder();
+    });
+  }
+
+  restoreSaveFolder() {
+    return this.#runFolder(async () => {
+      await api.restoreSaveFolder();
+      this.saveFolder = await api.readSaveFolder();
+    });
+  }
+
+  async #runFolder(action: () => Promise<unknown>) {
+    this.saveFolderError = null;
+    try {
+      await action();
+    } catch (error) {
+      this.saveFolderError = toLibraryError(error);
+    }
   }
 
   stop() {

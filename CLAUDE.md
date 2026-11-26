@@ -36,7 +36,7 @@ Read `docs/HANDOVER.md` (what is next) and `docs/DECISIONS.md` (what is settled)
 
 | Token | Value | Use |
 | --- | --- | --- |
-| Teal | `#0F766E` | Primary, voice |
+| Violet | `#5D20E1` | Primary, voice |
 | Cobalt | `#1D4EDB` | Secondary, music |
 | Slate | `#0F172A` | Text |
 | Muted | `#64748B` | Muted text |

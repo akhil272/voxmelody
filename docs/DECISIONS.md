@@ -127,3 +127,21 @@ The engine sets `GGML_VK_MAX_NODES_PER_SUBMIT` to 4. At the default of 100, Wind
 
 ## D042: DiffRhythm is not offered (2026-11-25)
 DiffRhythm 1's decoder has the Stability AI Community Licence, and DiffRhythm 2 has no maintained native runtime. Revisit when one exists.
+
+## D043: Private repository (2026-11-26)
+The repository is private by the owner's decision. The app stays GPL-3.0, and eSpeak NG (GPL-3.0) is linked into the voice engine, so every published installer must come with its complete source, for example a source archive beside each download.
+
+## D044: Violet brand colour (2026-11-26)
+Violet `#5D20E1` replaces teal as the primary and voice colour, in the app and its icon. Cobalt stays the music colour.
+
+## D045: About and support (2026-11-26)
+About starts with VoxMelody, then the developer, a Buy Me a Coffee card and social links; there is no separate Support page. Links open in the browser through `tauri-plugin-opener`, allowed only for those four addresses.
+
+## D046: Recordings folder (2026-11-26)
+Settings > Storage chooses where new recordings are saved; the choice is `save-folder.json` in the app data folder, read on every save so windows and the Claude Code connection agree. Earlier recordings stay where they are. An unreachable folder falls back to the app data folder, as in D025.
+
+## D047: Library tabs (2026-11-26)
+Library has All, Voice, Music and Mix tabs, starting on All. Songs are listed under Music.
+
+## D048: Version 1.0.0 (2026-11-26)
+The first release is 1.0.0. `package.json`, `tauri.conf.json` and `src-tauri/Cargo.toml` must match.
