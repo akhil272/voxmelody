@@ -16,3 +16,7 @@ engines/*/.build/
 src-tauri/binaries/
 /release/
 /.private/
+
+# Local-only notes
+/docs/
+/CLAUDE.md
