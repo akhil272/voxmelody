@@ -39,8 +39,6 @@ pnpm tauri dev
 
 Build the Windows installer with `pnpm tauri build --bundles nsis`.
 
-See [docs/PHASES.md](docs/PHASES.md) for the roadmap, [docs/DECISIONS.md](docs/DECISIONS.md) for settled choices and [docs/VERIFICATION.md](docs/VERIFICATION.md) for model test results.
-
 ## Support
 
 VoxMelody is free. If it helped you create something, you can [buy me a coffee](https://buymeacoffee.com/builtbyakhil).
